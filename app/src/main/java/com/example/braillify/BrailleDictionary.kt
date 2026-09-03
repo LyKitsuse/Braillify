@@ -1,5 +1,7 @@
 package com.example.braillify
 
+import androidx.compose.ui.geometry.Offset
+
 object BrailleDictionary {
     val brailleConversion = mapOf(
         // Braille Alphabet
@@ -47,5 +49,61 @@ object BrailleDictionary {
         "000011" to "Letter Sign",
         "000001" to "Capital Sign",
         "001011" to "Numeral Sign" // Note: 001111 in standard Braille (dots 3, 4, 5, 6)
+    )
+
+    val pointsLRef = listOf(
+        Offset(340f, 170f),
+        Offset(340f, 380f),
+        Offset(340f, 550f),
+        Offset(1250f, 170f),
+        Offset(1250f, 380f),
+        Offset(1250f, 550f),
+    )
+
+    val pointsL = listOf(
+        // Point 1 (340, 170) -> 2x2 grid
+        Offset(340f, 170f),
+        Offset(365f, 170f),
+        Offset(365f, 195f),
+        Offset(340f, 195f),
+
+        // Point 2 (340, 380) -> 2x2 grid
+        Offset(340f, 380f),
+        Offset(365f, 380f),
+        Offset(365f, 405f),
+        Offset(340f, 405f),
+
+        // Point 3 (340, 550) -> 2x2 grid
+        Offset(340f, 550f),
+        Offset(365f, 550f),
+        Offset(365f, 575f),
+        Offset(340f, 575f),
+
+        // Point 4 (1250, 170) -> 2x2 grid
+        Offset(1250f, 170f),
+        Offset(1275f, 170f),
+        Offset(1275f, 195f),
+        Offset(1250f, 195f),
+
+        // Point 5 (1250, 380) -> 2x2 grid
+        Offset(1250f, 380f),
+        Offset(1275f, 380f),
+        Offset(1275f, 405f),
+        Offset(1250f, 405f),
+
+        // Point 6 (1250, 550) -> 2x2 grid
+        Offset(1250f, 550f),
+        Offset(1275f, 550f),
+        Offset(1275f, 575f),
+        Offset(1250f, 575f)
+    )
+
+    val pointsP = listOf(
+        Offset(340f, 170f),
+        Offset(340f, 380f),
+        Offset(340f, 550f),
+        Offset(1250f, 170f),
+        Offset(1250f, 380f),
+        Offset(1250f, 550f)
     )
 }
