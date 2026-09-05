@@ -31,6 +31,11 @@ import com.example.braillify.BrailleDictionary
 import com.example.braillify.machineLearningModels.kNearestNeighbor
 
 class MockKeyboard {
+
+    var isCapital: Boolean = false
+    var isCapitalOnce: Boolean = false
+    var isNumeral: Boolean = false
+
     @Preview(showBackground = true)
     @Composable
     fun BrailleSandbox() {
@@ -43,19 +48,21 @@ class MockKeyboard {
         val taps = remember { mutableStateListOf<Offset>() }
         var tapEq: String by remember { mutableStateOf("Tap Anywhere!") }
         // When taps reaches 20, loop through and print every X and Y
-//        LaunchedEffect(Unit) {
-//            // Synthetic Data (2x2 per group)
-//            val pL = points.pointsL2D
-//
-//            val orientation = configuration.orientation
-//            if(orientation ==  Configuration.ORIENTATION_LANDSCAPE){
-//                for (point in pL){
-//                    kotlinx.coroutines.delay(100)
-//                    taps.add(point)
-//                    tapLocation = "Simulated Tap - X: ${point.x}, Y: ${point.y}"
-//                }
-//            }
-//        }
+        LaunchedEffect(Unit) {
+            // Synthetic Data (2x2 per group)
+            val pL = points.pointsL2D
+
+            val orientation = configuration.orientation
+            if(orientation ==  Configuration.ORIENTATION_LANDSCAPE){
+                for (dotGroup in pL) {
+                    for (point in dotGroup) {
+                        kotlinx.coroutines.delay(100)
+                        taps.add(point)
+                        tapLocation = "Simulated Tap - X: ${point.x}, Y: ${point.y}"
+                    }
+                }
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -87,9 +94,11 @@ class MockKeyboard {
                         // print the current coordinates being pressed (or dots) or call
 
                         // Call runModel()
-                        val output: String = runModel(taps, dict.pointsL2D)
-                        Log.d("CONV", "Point -> ${points.brailleConversion[output]}")
-                        tapEq = points.brailleConversion[output].toString()
+                        val rawOutput: String = runModel(taps, dict.pointsL2D)
+                        val brailleOutput = processRawBraille(rawOutput, points)
+
+                        Log.d("CONV", "Point -> $brailleOutput")
+                        tapEq = brailleOutput
                         taps.clear()
                     }
                 },
@@ -116,10 +125,7 @@ class MockKeyboard {
             )
         }
     }
-    fun groupPoints(){
-        // Group raw points for Callibrating the Actual Points
 
-    }
     fun convertToBraille(cells: List<Boolean>): String{
         // Converting Flags to Braille
         var brailleCell: String = ""
@@ -132,6 +138,7 @@ class MockKeyboard {
         brailleCell += if (cells[5]) "1" else "0"
 
         Log.d("CONV", brailleCell)
+
         return brailleCell
     }
 
@@ -156,5 +163,63 @@ class MockKeyboard {
         }
 
         return convertToBraille(cells)
+    }
+
+    fun processRawBraille(brailleOutput: String, pts: BrailleDictionary): String {
+        val output: String = when {
+            // Caps Lock Turn Off (checked first if already in caps lock mode)
+            brailleOutput == "000001" && isCapital -> {
+                isCapital = false
+                isCapitalOnce = false
+                "Capital Off"
+            }
+            // Capital Once active -> next press activates Caps Lock
+            brailleOutput == "000001" && isCapitalOnce -> {
+                isCapital = true
+                isCapitalOnce = false
+                "Caps Lock"
+            }
+            // First tap: Capital Once On
+            brailleOutput == "000001" -> {
+                isCapitalOnce = true
+                "Capital Sign"
+            }
+            brailleOutput == "000011" -> {
+                isNumeral = false
+                "Letter Sign"
+            }
+            brailleOutput == "001111" -> {
+                isNumeral = true
+                "Numeral Sign"
+            }
+            // Handle numerals if the flag is active
+            isNumeral -> when (brailleOutput) {
+                "100000" -> "1"
+                "110000" -> "2"
+                "100100" -> "3"
+                "100110" -> "4"
+                "100010" -> "5"
+                "110100" -> "6"
+                "110110" -> "7"
+                "110010" -> "8"
+                "010100" -> "9"
+                "010110" -> "0"
+                else -> {
+                    val original = pts.brailleConversion[brailleOutput] ?: ""
+                    val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                    isCapitalOnce = false
+                    result
+                }
+            }
+            // Fallback to standard conversion with capitalization support
+            else -> {
+                val original = pts.brailleConversion[brailleOutput] ?: ""
+                val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                isCapitalOnce = false // consume single capital flag
+                val ifNullCheck = if(result != null || result != "") result else "Null"
+                ifNullCheck
+            }
+        }
+        return output
     }
 }
