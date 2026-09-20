@@ -27,14 +27,19 @@ import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import com.example.braillify.BrailleDictionary
 import com.example.braillify.machineLearningModels.kNearestNeighbor
+import com.example.braillify.Calibrate
 
 class MockKeyboard {
 
     var isCapital: Boolean = false
     var isCapitalOnce: Boolean = false
     var isNumeral: Boolean = false
+
+    var isCalibrating = true
 
     @Preview(showBackground = true)
     @Composable
@@ -48,26 +53,14 @@ class MockKeyboard {
         val taps = remember { mutableStateListOf<Offset>() }
         var tapEq: String by remember { mutableStateOf("Tap Anywhere!") }
         // When taps reaches 20, loop through and print every X and Y
-        LaunchedEffect(Unit) {
-            // Synthetic Data (2x2 per group)
-            val pL = points.pointsL2D
-
-            val orientation = configuration.orientation
-            if(orientation ==  Configuration.ORIENTATION_LANDSCAPE){
-                for (dotGroup in pL) {
-                    for (point in dotGroup) {
-                        kotlinx.coroutines.delay(100)
-                        taps.add(point)
-                        tapLocation = "Simulated Tap - X: ${point.x}, Y: ${point.y}"
-                    }
-                }
-            }
-        }
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.LightGray)
+                .semantics{
+                    hideFromAccessibility()
+                }
                 .pointerInput(Unit) {
                     awaitEachGesture {
                         // Wait for the first finger to touch the screen
@@ -87,11 +80,11 @@ class MockKeyboard {
                         // Save all finger positions at once
                         for (pointer in currentPointers) {
                             taps.add(pointer.position)
+                            Log.d("TAP", "Point -> ${pointer.position}")
                         }
 
                         // Update UI text showing how many fingers touched
                         tapLocation = "Recorded ${currentPointers.size} fingers at once!"
-                        // print the current coordinates being pressed (or dots) or call
 
                         // Call runModel()
                         val rawOutput: String = runModel(taps, dict.pointsL2D)
@@ -122,6 +115,9 @@ class MockKeyboard {
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 32.dp)
+                    .semantics{
+                        hideFromAccessibility()
+                    }
             )
         }
     }

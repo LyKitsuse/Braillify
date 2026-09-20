@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Braillify</string>
+    <string name="accessibility_service_description">Companion service for Braillify to improve TalkBack interaction.</string>
 </resources>
