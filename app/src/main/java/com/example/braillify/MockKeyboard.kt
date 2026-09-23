@@ -80,7 +80,7 @@ class MockKeyboard {
                         // Save all finger positions at once
                         for (pointer in currentPointers) {
                             taps.add(pointer.position)
-                            Log.d("TAP", "Point -> ${pointer.position}")
+                            Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
                         }
 
                         // Update UI text showing how many fingers touched

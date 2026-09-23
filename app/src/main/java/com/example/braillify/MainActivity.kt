@@ -1,5 +1,6 @@
 package com.example.braillify
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,29 +21,52 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 
 class MainActivity : ComponentActivity() {
+    val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
+    val isFirstTime = sharedPreferences.getBoolean("isFirstTime", false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
-            BraillifyTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                        var text by remember { mutableStateOf("") }
-                        OutlinedTextField(
-                            value = text,
-                            onValueChange = { text = it },
-                            label = { Text("Test Braille Input Here") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        )
-                        
-                        val sandbox = MockKeyboard()
-                        sandbox.BrailleSandbox()
+        if (isFirstTime) {
+            // Onboarding Procedure
+            // Put your introductory logic here (e.g., show an onboarding screen)
+
+            // Save the flag as false so this code won't run again
+            sharedPreferences.edit().putBoolean("isFirstTime", false).apply()
+            setContent {
+                BraillifyTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                            // Onboarding Screen
+
+
+                        }
+                    }
+                }
+            }
+        } else {
+            // Proceed with normal app startup
+            setContent {
+                BraillifyTheme {
+                    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                        Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
+                            // Text Input
+                            var text by remember { mutableStateOf("") }
+                            OutlinedTextField(
+                                value = text,
+                                onValueChange = { text = it },
+                                label = { Text("Test Braille Input Here") },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+
+                            )
+                        }
                     }
                 }
             }
         }
+
     }
 }
 

@@ -155,6 +155,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                     awaitEachGesture {
                                         val initialDown = awaitFirstDown()
                                         val dict = BrailleDictionary
+                                        val cal = Calibrate()
 
                                         // Give a tiny fraction of a second (50ms) for all other fingers in the chord to land
                                         withTimeoutOrNull(50L) {
@@ -170,7 +171,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                         taps.clear()
                                         for (pointer in currentPointers) {
                                             taps.add(pointer.position)
-                                            Log.d("TAP", "Point -> ${pointer.position}")
+                                            Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
                                         }
 
                                         val pointerStarts = mutableMapOf<Long, Offset>()
@@ -272,9 +273,11 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 }
                                             }
                                         } else {
-                                            // CHORD TYPING LOGIC
+                                            // Grab EVERY finger touching the screen right now
+                                            val currentPointers = currentEvent.changes.filter { it.pressed }
+
                                             // taps already populated by currentPointers logic above
-                                            val rawOutput = runModel(taps, dict.pointsL2D)
+                                            val rawOutput = runModel(taps, cal.calibratedMain)
                                             val brailleOutput = processRawBraille(rawOutput, dict)
 
                                             if (brailleOutput.isNotEmpty() && brailleOutput !in listOf(

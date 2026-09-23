@@ -59,51 +59,6 @@ object BrailleDictionary {
         Offset(1250f, 550f),
     )
 
-    // Synthetic Data A
-    val pointsL2D: List<List<Offset>> = listOf(
-        // Dot 1 (a)
-        listOf(
-            Offset(340f, 170f),
-            Offset(365f, 170f),
-            Offset(365f, 195f),
-            Offset(340f, 195f)
-        ),
-        // Dot 2 (b)
-        listOf(
-            Offset(340f, 380f),
-            Offset(365f, 380f),
-            Offset(365f, 405f),
-            Offset(340f, 405f)
-        ),
-        // Dot 3 (c)
-        listOf(
-            Offset(340f, 550f),
-            Offset(365f, 550f),
-            Offset(365f, 575f),
-            Offset(340f, 575f)
-        ),
-        // Dot 4 (d)
-        listOf(
-            Offset(1250f, 170f),
-            Offset(1275f, 170f),
-            Offset(1275f, 195f),
-            Offset(1250f, 195f)
-        ),
-        // Dot 5 (e)
-        listOf(
-            Offset(1250f, 380f),
-            Offset(1275f, 380f),
-            Offset(1275f, 405f),
-            Offset(1250f, 405f)
-        ),
-        // Dot 6 (f)
-        listOf(
-            Offset(1250f, 550f),
-            Offset(1275f, 550f),
-            Offset(1275f, 575f),
-            Offset(1250f, 575f)
-        )
-    )
     // Synthetic Data A (Main Reference)
     val pointsP = listOf(
         Offset(340f, 170f),
