@@ -76,13 +76,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }
 
-    // --- Lifecycle driving fix ---
-    // InputMethodService has no Activity to advance the LifecycleOwner for us.
-    // Compose's Recomposer only starts (and keeps) applying recompositions to the
-    // screen once the owning lifecycle reaches STARTED/RESUMED. Without these
-    // callbacks the lifecycle sits frozen at CREATED forever: the first frame
-    // draws, state still mutates under the hood (which is why Logcat looked
-    // correct), but nothing ever gets redrawn after that.
     override fun onWindowShown() {
         super.onWindowShown()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
@@ -99,7 +92,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         super.onDestroy()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
-    // --- end lifecycle driving fix ---
 
     override fun onEvaluateFullscreenMode(): Boolean {
         return true
