@@ -39,7 +39,7 @@ class MockKeyboard {
     var isCapitalOnce: Boolean = false
     var isNumeral: Boolean = false
 
-    var isCalibrating = true
+
 
     @Preview(showBackground = true)
     @Composable
