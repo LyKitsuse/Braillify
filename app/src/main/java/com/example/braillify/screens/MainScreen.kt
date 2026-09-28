@@ -10,9 +10,16 @@ import com.example.braillify.Calibrate
 class MainScreen {
     @Preview(showBackground = true)
     @Composable
-    fun OnboardingProcess() {
+    fun MainScreenUI() {
         val cal = Calibrate()
         // Calibrate Button
+        Button(onClick = {
+            Log.d("DEBUG", "Entered Practice")
+            cal.calibrateNew()
+        }) {
+            Text("Practice")
+        }
+
         Button(onClick = {
             Log.d("DEBUG", "Entered Calibration")
             cal.calibrateNew()
@@ -22,9 +29,16 @@ class MainScreen {
 
         // Profiles
         Button(onClick = {
-            println("Button clicked!")
+            Log.d("DEBUG", "Profile Chosen")
         }) {
             Text("Profile")
+        }
+
+        // Profiles
+        Button(onClick = {
+            Log.d("DEBUG", "Voice Settings Chosen")
+        }) {
+            Text("Voice Settings")
         }
     }
 

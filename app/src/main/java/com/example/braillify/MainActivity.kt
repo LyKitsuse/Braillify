@@ -19,14 +19,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import com.example.braillify.screens.MainScreen
 
 class MainActivity : ComponentActivity() {
-    val sharedPreferences = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE)
-    val isFirstTime = sharedPreferences.getBoolean("isFirstTime", false)
+    private val sharedPreferences by lazy { getSharedPreferences("AppPrefs", Context.MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val isFirstTime = sharedPreferences.getBoolean("isFirstTime", false)
         if (isFirstTime) {
             // Onboarding Procedure
             // Put your introductory logic here (e.g., show an onboarding screen)
@@ -61,6 +62,10 @@ class MainActivity : ComponentActivity() {
                                     .padding(16.dp)
 
                             )
+
+                            // Main Screen
+                            val mainUI = MainScreen()
+                            mainUI.MainScreenUI()
                         }
                     }
                 }

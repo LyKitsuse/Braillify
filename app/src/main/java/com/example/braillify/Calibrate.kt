@@ -76,6 +76,12 @@ class Calibrate {
             // Dots 5 (e)
             Offset(0f,0f),
             // Dots 6 (f)
-            Offset(0f,0f))
+            Offset(0f,0f)
+        )
+
+        // Open In-App Keyboard where required to type
+        // Basis Points (All 6)
+        // Type from a-z in order
     }
+
 }

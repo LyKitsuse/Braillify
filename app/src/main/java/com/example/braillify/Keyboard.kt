@@ -76,6 +76,31 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }
 
+    // --- Lifecycle driving fix ---
+    // InputMethodService has no Activity to advance the LifecycleOwner for us.
+    // Compose's Recomposer only starts (and keeps) applying recompositions to the
+    // screen once the owning lifecycle reaches STARTED/RESUMED. Without these
+    // callbacks the lifecycle sits frozen at CREATED forever: the first frame
+    // draws, state still mutates under the hood (which is why Logcat looked
+    // correct), but nothing ever gets redrawn after that.
+    override fun onWindowShown() {
+        super.onWindowShown()
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    }
+
+    override fun onWindowHidden() {
+        super.onWindowHidden()
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    }
+    // --- end lifecycle driving fix ---
+
     override fun onEvaluateFullscreenMode(): Boolean {
         return true
     }
@@ -98,23 +123,20 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
             accessibilityDelegate = object : View.AccessibilityDelegate() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: AccessibilityNodeInfo) {
-                    // Do not call super to prevent any default info
                     info.isVisibleToUser = false
                     info.isFocusable = false
                     info.isImportantForAccessibility = false
                     info.className = View::class.java.name
                     info.packageName = packageName
                 }
-                
+
                 override fun dispatchPopulateAccessibilityEvent(host: View, event: AccessibilityEvent): Boolean {
                     return true // Consume
                 }
             }
 
-            // 3. Consume Hover events to stop TalkBack exploration
             setOnHoverListener { _, _ -> true }
-            
-            // 4. Recursive bypass on attach
+
             addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
                 override fun onViewAttachedToWindow(v: View) {
                     var current = v.parent
@@ -139,6 +161,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 val taps = remember { mutableStateListOf<Offset>() }
                 var tapEq by remember { mutableStateOf("Tap Anywhere!") }
 
+                // Debug state tracking
+                var testIncrement by remember { mutableStateOf(0) }
+                var printTapPos by remember { mutableStateOf("") }
+
                 if ((configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) || configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
                     Column(
                         modifier = Modifier
@@ -146,26 +172,28 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                             .background(Color(0x804B0082))
                             .clearAndSetSemantics { }
                     ) {
-                        // Minimalistic Header for Status
-
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillMaxWidth()
+                                .weight(1f)
                                 .pointerInput(Unit) {
                                     awaitEachGesture {
                                         val initialDown = awaitFirstDown()
                                         val dict = BrailleDictionary
                                         val cal = Calibrate()
 
+                                        var latestEvent: androidx.compose.ui.input.pointer.PointerEvent? = null
+
                                         // Give a tiny fraction of a second (50ms) for all other fingers in the chord to land
                                         withTimeoutOrNull(50L) {
                                             while (true) {
-                                                awaitPointerEvent()
+                                                latestEvent = awaitPointerEvent()
                                             }
                                         }
 
                                         // Grab EVERY finger touching the screen right now
-                                        val currentPointers = currentEvent.changes.filter { it.pressed }
+                                        val changes = latestEvent?.changes ?: listOf(initialDown)
+                                        val currentPointers = changes.filter { it.pressed }
 
                                         // Save all finger positions at once
                                         taps.clear()
@@ -174,15 +202,24 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
                                         }
 
+                                        // Build string and force state update
+                                        val sb = StringBuilder("### Input $testIncrement ###\n")
+                                        for (tap in taps) {
+                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
+                                        }
+
+                                        // Update state
+                                        printTapPos = sb.toString()
+                                        testIncrement++
+                                        Log.d("DataColl", printTapPos)
+
                                         val pointerStarts = mutableMapOf<Long, Offset>()
                                         val pointerEnds = mutableMapOf<Long, Offset>()
-                                        
-                                        // Initialize pointerStarts with what we captured in the chord window
+
                                         for (pointer in currentPointers) {
                                             pointerStarts[pointer.id.value] = pointer.position
                                             pointerEnds[pointer.id.value] = pointer.position
                                         }
-                                        // Ensure initialDown is included if it was missed or released quickly (unlikely but safe)
                                         if (!pointerStarts.containsKey(initialDown.id.value)) {
                                             pointerStarts[initialDown.id.value] = initialDown.position
                                         }
@@ -198,8 +235,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             for (change in event.changes) {
                                                 val id = change.id.value
                                                 if (change.pressed) {
-                                                    if (!pointerStarts.containsKey(id)) pointerStarts[id] =
-                                                        change.position
+                                                    if (!pointerStarts.containsKey(id)) pointerStarts[id] = change.position
                                                     pointerEnds[id] = change.position
                                                 }
                                             }
@@ -218,8 +254,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             totalDy += (end.y - start.y)
                                         }
 
-                                        val isSwipe =
-                                            abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
+                                        val isSwipe = abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
 
                                         if (isSwipe) {
                                             // GESTURE LOGIC
@@ -234,10 +269,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                     }
                                                 } else { // Left
                                                     if (maxFingers == 1) {
-                                                        currentInputConnection?.deleteSurroundingText(
-                                                            1,
-                                                            0
-                                                        )
+                                                        currentInputConnection?.deleteSurroundingText(1, 0)
                                                         statusLabel = "Delete"
                                                     } else if (maxFingers == 2) {
                                                         deleteWordBackward()
@@ -254,39 +286,23 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                     }
                                                 } else { // Up
                                                     if (maxFingers == 2) {
-                                                        val action =
-                                                            currentInputEditorInfo?.imeOptions?.and(
-                                                                EditorInfo.IME_MASK_ACTION
-                                                            )
+                                                        val action = currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
                                                         if (action != null && action != EditorInfo.IME_ACTION_NONE) {
-                                                            currentInputConnection?.performEditorAction(
-                                                                action
-                                                            )
+                                                            currentInputConnection?.performEditorAction(action)
                                                         } else {
-                                                            currentInputConnection?.commitText(
-                                                                "\n",
-                                                                1
-                                                            )
+                                                            currentInputConnection?.commitText("\n", 1)
                                                         }
                                                         statusLabel = "Submit"
                                                     }
                                                 }
                                             }
                                         } else {
-                                            // Grab EVERY finger touching the screen right now
-                                            val currentPointers = currentEvent.changes.filter { it.pressed }
-
-                                            // taps already populated by currentPointers logic above
                                             val rawOutput = runModel(taps, cal.calibratedMain)
                                             val brailleOutput = processRawBraille(rawOutput, dict)
 
                                             if (brailleOutput.isNotEmpty() && brailleOutput !in listOf(
-                                                    "Capital Sign",
-                                                    "Caps Lock",
-                                                    "Capital Off",
-                                                    "Letter Sign",
-                                                    "Numeral Sign",
-                                                    "Null"
+                                                    "Capital Sign", "Caps Lock", "Capital Off",
+                                                    "Letter Sign", "Numeral Sign", "Null"
                                                 )
                                             ) {
                                                 currentInputConnection?.commitText(brailleOutput, 1)
@@ -304,26 +320,15 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                // Subtle haptic or visual feedback for developers
-                            }
-                            if (statusLabel == "Ready") {
-                                Text(
-                                    text = "Braille Keyboard", // Replace with Letter input
-                                    color = Color.White,
-                                    modifier = Modifier
-                                        .semantics {
-                                            hideFromAccessibility()
-                                        }
-                                )
-                            }
+                            Canvas(modifier = Modifier.fillMaxSize()) {}
                             Text(
-                                text = tapEq,
-                                textAlign = TextAlign.Center,
+                                text = if (printTapPos.isEmpty()) "Tap Anywhere!" else printTapPos,
                                 color = Color.White,
+                                fontSize = 18.sp,
+                                textAlign = TextAlign.Center,
                                 modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(bottom = 32.dp)
+                                    .align(Alignment.Center)
+                                    .padding(16.dp)
                                     .semantics {
                                         hideFromAccessibility()
                                     }

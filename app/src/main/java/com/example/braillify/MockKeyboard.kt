@@ -86,8 +86,9 @@ class MockKeyboard {
                         // Update UI text showing how many fingers touched
                         tapLocation = "Recorded ${currentPointers.size} fingers at once!"
 
+                        val cal = Calibrate()
                         // Call runModel()
-                        val rawOutput: String = runModel(taps, dict.pointsL2D)
+                        val rawOutput: String = runModel(taps, cal.calibratedMain)
                         val brailleOutput = processRawBraille(rawOutput, points)
 
                         Log.d("CONV", "Point -> $brailleOutput")
