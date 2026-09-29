@@ -18,52 +18,52 @@ class randomForest {
             }
         }
 
-        // find distance between outlier of (abc) and outlier of (efg) then check if the epsilon offset x is > or <
-        var outlierA: Offset? = null
-        var outlierB: Offset? = null
+        // Safe access helpers to avoid NullPointerExceptions during calculations
+        fun getX(i: Int): Float = randomOffsets[i]?.x ?: 0f
+        fun getY(i: Int): Float = randomOffsets[i]?.y ?: 0f
+
+        // find distance between outlier of (abc) and outlier of (efg)
+        var outlierA: Offset = randomOffsets[0] ?: Offset.Zero
+        var outlierB: Offset = randomOffsets[3] ?: Offset.Zero
 
         var tempDist = 0f
         var currDist = 999999f
 
         for (i in 0 until 3) {
             for (j in 3 until 6) {
-                if (randomOffsets[i] != null && randomOffsets[j] != null) {
-                    tempDist = distanceFormula(
-                        randomOffsets[i]!!.x,
-                        randomOffsets[i]!!.y,
-                        randomOffsets[j]!!.x,
-                        randomOffsets[j]!!.y
-                    )
-                    if (currDist > tempDist) {
-                        currDist = tempDist
-                        outlierA = randomOffsets[i]
-                        outlierB = randomOffsets[j]
-                    }
+                tempDist = distanceFormula(getX(i), getY(i), getX(j), getY(j))
+                if (currDist > tempDist) {
+                    currDist = tempDist
+                    outlierA = randomOffsets[i] ?: Offset.Zero
+                    outlierB = randomOffsets[j] ?: Offset.Zero
                 }
             }
         }
 
-        // Safely compute decision offset using non-null fallbacks if outliers weren't found
-        val decisionOffset: Offset = if (outlierA != null && outlierB != null) {
-            (outlierA + outlierB) / 2f
+        val decisionOffset: Offset = Offset(
+            x = (outlierA.x + outlierB.x) / 2f,
+            y = (outlierA.y + outlierB.y) / 2f
+        )
+
+        // Your exact nested decision tree logic:
+        val predictedLabel = if (getX(0) > getX(1)) {
+            if (getY(0) > getY(1)) {
+                "a"
+            } else {
+                if (getY(1) > getY(2)) {
+                    "b"
+                } else {
+                    "c"
+                }
+            }
         } else {
-            Offset.Zero
-        }
-
-        // Fixed nested when-expression syntax and Offset comparison property access (.y)
-        val predictedLabel = when {
-            (randomOffsets[0]?.y ?: 0f) > (randomOffsets[1]?.y ?: 0f) -> {
-                when {
-                    (randomOffsets[0]?.y ?: 0f) > (randomOffsets[1]?.y ?: 0f) -> "a"
-                    (randomOffsets[1]?.y ?: 0f) > (randomOffsets[2]?.y ?: 0f) -> "b"
-                    else -> "c"
-                }
-            }
-            else -> {
-                when {
-                    (randomOffsets[3]?.y ?: 0f) > (randomOffsets[4]?.y ?: 0f) -> "d"
-                    (randomOffsets[4]?.y ?: 0f) > (randomOffsets[5]?.y ?: 0f) -> "e"
-                    else -> "f"
+            if (getY(3) > getY(4)) {
+                "d"
+            } else {
+                if (getY(4) > getY(5)) {
+                    "e"
+                } else {
+                    "f"
                 }
             }
         }

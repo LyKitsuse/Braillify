@@ -389,8 +389,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     fun runModel(tapSet: List<Offset>, pointsL2D: List<List<Offset>>): String {
         // Run Model and use Reference Data Points with Actual Data Points
         var cells = mutableListOf(false, false, false, false, false, false)
-        val mL_kNN1 = kNearestNeighbor()
-        val mL_kNN2 = svm()
+//        val mL_kNN1 = kNearestNeighbor()
+//        val mL_kNN2 = svm()
         val mL_kNN3 = randomForest()
         var set: String?
 
