@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import com.example.braillify.screens.MainScreen
+import com.example.braillify.screens.Onboarding
 
 class MainActivity : ComponentActivity() {
     private val sharedPreferences by lazy { getSharedPreferences("AppPrefs", Context.MODE_PRIVATE) }
@@ -39,8 +40,8 @@ class MainActivity : ComponentActivity() {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                             // Onboarding Screen
-
-
+                            val onboarding = Onboarding()
+                            onboarding.OnboardingProcess()
                         }
                     }
                 }
@@ -51,7 +52,6 @@ class MainActivity : ComponentActivity() {
                 BraillifyTheme {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-
 
                             // Main Screen
                             val mainUI = MainScreen()
