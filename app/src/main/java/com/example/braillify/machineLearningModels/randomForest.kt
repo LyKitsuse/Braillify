@@ -50,8 +50,6 @@ class randomForest(
         return votes.maxByOrNull { it.value }!!.key
     }
 
-    // ------------------------------------------------------------ training
-
     private fun train(groups: List<List<Offset>>) {
         centroids = groups.map { g ->
             Offset(
@@ -73,7 +71,7 @@ class randomForest(
         trainedOn = groups.map { it.toList() } // snapshot to detect later changes
     }
 
-    // Features: x, y, and distance to each dot's calibrated centroid (8 total)
+    // Features: x, y, and distance to each dot's calibrated center (8 total)
     private fun features(p: Offset): FloatArray {
         val out = FloatArray(2 + centroids.size)
         out[0] = p.x
@@ -151,8 +149,6 @@ class randomForest(
 
     private fun majority(l: List<String>): String =
         l.groupingBy { it }.eachCount().maxByOrNull { it.value }!!.key
-
-    // ---------------------------------------------------------- prediction
 
     private fun walk(node: Node, f: FloatArray): String = when (node) {
         is Node.Leaf -> node.label
