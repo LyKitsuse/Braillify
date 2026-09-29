@@ -248,6 +248,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         val isSwipe = abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
 
+                                        // If Swipe, otherwise Tap
                                         if (isSwipe) {
                                             // GESTURE LOGIC
                                             if (abs(totalDx) > abs(totalDy)) {
@@ -312,7 +313,16 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {}
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                // Draw a purple circle for every tap
+                                for (tap in taps) {
+                                    drawCircle(
+                                        color = Color(0xFF6200EE),
+                                        radius = 10f,
+                                        center = tap
+                                    )
+                                }
+                            }
                             Text(
                                 text = if (printTapPos.isEmpty()) "Tap Anywhere!" else printTapPos,
                                 color = Color.White,
