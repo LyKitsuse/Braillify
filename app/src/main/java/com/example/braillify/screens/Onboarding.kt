@@ -1,6 +1,7 @@
 package com.example.braillify.screens
 
 import android.util.Log
+import android.widget.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -32,15 +38,22 @@ class Onboarding {
         end = 24.dp,
         bottom = 0.dp // Optional, defaults to 0.dp
     )
-    val subText: Color = Color(0xff8d8f84)
-    val cardBackground: Color = Color(0xfff2efeb)
+    private val subText: Color = Color(0xff8d8f84)
+    private val cardBackground: Color = Color(0xfff2efeb)
 
-    var stepsAchieved: Int = 0;
+    val subTextFont = 13.sp
+    val mainTextFont = 16.sp
 
     // Calibrate Btn
     @Preview(showBackground = true)
     @Composable
     fun OnboardingProcess() {
+        var stepsAchieved by remember { mutableStateOf(0) }
+        var messageInstruction by remember { mutableStateOf("nullTitle") }
+        var messageDescription by remember { mutableStateOf("nullDescription.") }
+        var interactableButton by remember { mutableStateOf("nullButton") }
+        var warningDesc by remember { mutableStateOf("Please turn on essential settings to complete setup and continue.") }
+
         // Main Screen
         Log.d("DEBUG", "Entered Onboarding")
         Box{
@@ -55,9 +68,9 @@ class Onboarding {
             )
             {
                 welcomeMessage()
-                infoCard()
-                buttonInteract()
-                continueInteract()
+                infoCard(messageInstruction, messageDescription)
+                buttonInteract(interactableButton)
+                continueInteract(warningDesc)
             }
 
         }
@@ -75,7 +88,7 @@ class Onboarding {
                 text = "Braillify",
                 fontWeight = FontWeight.Bold,
                 color = Color.Blue,
-                fontSize = 24.sp,
+                fontSize = 28.sp,
                 modifier = Modifier
                     .padding(bottom = 24.dp)
             )
@@ -91,12 +104,14 @@ class Onboarding {
                     text = "Welcome to Braillify",
                     color = Color.Black,
                     fontWeight = FontWeight.Bold,
+                    fontSize = mainTextFont,
                     modifier = Modifier
                         .padding(cardTextPadding)
                 )
                 Text(
                     text = "Braillify is a mobile application designed to help visually impaired users read and write using Braille, with the support of voice assistance and machine learning technology.",
                     color = subText,
+                    fontSize = subTextFont,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(cardTextPadding)
@@ -105,6 +120,7 @@ class Onboarding {
                     text = "Before we get started. Follow the steps below.",
                     color = subText,
                     fontWeight = FontWeight.Bold,
+                    fontSize = subTextFont,
                     modifier = Modifier
                         .padding(top = 24.dp,
                             start = 24.dp,
@@ -118,7 +134,7 @@ class Onboarding {
     }
 
     @Composable
-    fun infoCard() {
+    fun infoCard(messInstruction: String, messDesc: String) {
         // Changes info after step, there are three steps
         Column (
             Modifier
@@ -130,16 +146,18 @@ class Onboarding {
                 .background(cardBackground)
         ) {
             Text(
-                text = "Message Instruction",
+                text = messInstruction,
                 color = Color.Black,
+                fontSize = mainTextFont,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .padding(cardTextPadding)
             )
             Text(
-                text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                text = messDesc,
                 color = subText,
                 fontWeight = FontWeight.Bold,
+                fontSize = subTextFont,
                 modifier = Modifier
                     .padding(top = 24.dp,
                         start = 24.dp,
@@ -151,42 +169,68 @@ class Onboarding {
     }
 
     @Composable
-    fun buttonInteract() {
+    fun buttonInteract(buttDesc: String) {
         Button(
             onClick = {
                 Log.d("DEBUG", "Clicked Action Button")
             },
-            modifier = Modifier
-                .padding(cardTextPadding)
-                .fillMaxWidth(),
-        ) {
-            Text(
-                text = "Null Button"
-            )
-        }
-    }
-
-    @Composable
-    fun continueInteract() {
-        ElevatedButton(
-            onClick = {
-                Log.d("DEBUG", "Clicked Continue")
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = cardBackground,      // Button background color
-                contentColor = Color.Black        // Text/Icon color inside button
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B3FE4)),
             modifier = Modifier
                 .padding(
                     start = 24.dp,
                     end = 24.dp,
                     top = 12.dp,
-                    bottom = 12.dp
+                    bottom = 0.dp
                 )
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
-            Text("Continue")
+            Text(
+                text = buttDesc,
+                Modifier.padding(10.dp)
+            )
         }
+    }
+
+    @Composable
+    fun continueInteract(warningDesc: String) {
+        Column() {
+            Text(
+                text = warningDesc,
+                fontWeight = FontWeight.Bold,
+                color = Color.Red,
+                fontSize = 10.sp,
+                modifier = Modifier
+                    .padding(top = 12.dp,
+                        start = 24.dp,
+                        end = 24.dp,
+                        bottom = 0.dp
+                    )
+
+            )
+            ElevatedButton(
+                onClick = {
+                    Log.d("DEBUG", "Clicked Continue")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = cardBackground,      // Button background color
+                    contentColor = Color.Black        // Text/Icon color inside button
+                ),
+                modifier = Modifier
+                    .padding(
+                        start = 24.dp,
+                        end = 24.dp,
+                        top = 6.dp,
+                        bottom = 12.dp
+                    )
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Continue",
+                    Modifier.padding(10.dp)
+                )
+            }
+        }
+
     }
 
 }
