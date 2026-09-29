@@ -53,6 +53,8 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.example.braillify.machineLearningModels.randomForest
+import com.example.braillify.machineLearningModels.svm
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
 
@@ -69,6 +71,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     private var isCapital: Boolean = false
     private var isCapitalOnce: Boolean = false
     private var isNumeral: Boolean = false
+    private val forest = randomForest()
+
+    private val mL_kNN1 = kNearestNeighbor()
+    private val mL_kNN2 = svm()
 
     override fun onCreate() {
         super.onCreate()
@@ -387,12 +393,15 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     fun runModel(tapSet: List<Offset>, pointsL2D: List<List<Offset>>): String {
         // Run Model and use Reference Data Points with Actual Data Points
         var cells = mutableListOf(false, false, false, false, false, false)
-        val ML_kNN = kNearestNeighbor()
+
         var set: String?
 
         // Loop through all Points
         for(i in tapSet){
-            set = ML_kNN.kNN(i, pointsL2D)
+//            set = mL_kNN1.kNN(i, pointsL2D)
+//            set = mL_kNN2.svmAlgo(i, pointsL2D)
+            set = mL_kNN3.randomForestAlgo(i, pointsL2D)
+             forest.randomForestAlgo(epsilon, pointsL2D)
             when(set){
                 "a" -> cells[3] = true
                 "b" -> cells[4] = true
