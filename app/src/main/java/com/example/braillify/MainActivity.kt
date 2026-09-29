@@ -51,17 +51,7 @@ class MainActivity : ComponentActivity() {
                 BraillifyTheme {
                     Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                         Column(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
-                            // Text Input
-                            var text by remember { mutableStateOf("") }
-                            OutlinedTextField(
-                                value = text,
-                                onValueChange = { text = it },
-                                label = { Text("Test Braille Input Here") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp)
 
-                            )
 
                             // Main Screen
                             val mainUI = MainScreen()
