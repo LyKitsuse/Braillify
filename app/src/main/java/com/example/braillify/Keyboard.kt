@@ -39,6 +39,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.machineLearningModels.kNearestNeighbor
+import com.example.braillify.machineLearningModels.randomForest
+import com.example.braillify.machineLearningModels.svm
 import com.example.braillify.ui.theme.BraillifyTheme
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -51,8 +53,6 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.example.braillify.machineLearningModels.randomForest
-import com.example.braillify.machineLearningModels.svm
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.math.abs
@@ -70,8 +70,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     private var isCapital: Boolean = false
     private var isCapitalOnce: Boolean = false
     private var isNumeral: Boolean = false
-    private val forest = randomForest()
 
+    private val forest = randomForest()
     private val mL_kNN1 = kNearestNeighbor()
     private val mL_kNN2 = svm()
 
@@ -82,6 +82,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         var isCalibrating by mutableStateOf(false)
         var calibrationStep by mutableIntStateOf(0)
 
+        // Array of Words the TTS should Say during Calibration
         val calibrationPrompts = listOf(
             "Input Braille Cell",
             "Input a", "Input b", "Input c", "Input d", "Input e", "Input f", "Input g",
@@ -190,7 +191,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
             setViewTreeLifecycleOwner(this@Keyboard)
             setViewTreeViewModelStoreOwner(this@Keyboard)
             setViewTreeSavedStateRegistryOwner(this@Keyboard)
-
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
 
             accessibilityDelegate = object : View.AccessibilityDelegate() {
@@ -239,7 +239,9 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var testIncrement by remember { mutableStateOf(0) }
                 var printTapPos by remember { mutableStateOf("") }
 
-                if ((configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) || configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ||
+                    configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -510,7 +512,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         var set: String?
 
         for (i in tapSet) {
-            set = mL_kNN1.kNN(i, pointsL2D)
+            set  = forest.randomForestAlgo(i, pointsL2D)
             when (set) {
                 "a" -> cells[0] = true
                 "b" -> cells[1] = true

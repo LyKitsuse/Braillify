@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,11 +32,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.braillify.Calibrate
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
@@ -46,9 +53,13 @@ private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
 class MainScreen {
+    private val cal = Calibrate()
     @Preview(showBackground = true)
     @Composable
     fun MainScreenUI() {
+        var text by remember { mutableStateOf("") }
+        val focusRequester = remember { FocusRequester() }
+        val keyboardController = LocalSoftwareKeyboardController.current
         var selectedTab by remember { mutableStateOf(NavTab.HOME) }
         var showNotes by remember { mutableStateOf(false) }
         var showPractice by remember { mutableStateOf(false) }
@@ -62,6 +73,19 @@ class MainScreen {
                     .weight(1f)
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
+                // Hidden TextBox for pulling up the keyboard from navbar or anywhere
+                Box(
+                    modifier = Modifier
+                        .size(1.dp)
+                        .graphicsLayer { alpha = 0f }
+                        .semantics { hideFromAccessibility() }
+                ) {
+                    OutlinedTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        modifier = Modifier.focusRequester(focusRequester)
+                    )
+                }
                 when {
                     showPractice -> PracticeBrailleScreen(
                         onBack = { showPractice = false }
@@ -85,6 +109,8 @@ class MainScreen {
                     )
 
                     selectedTab == NavTab.KEYBOARD -> { /* TODO */
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
                     }
 
                     selectedTab == NavTab.SETTINGS -> SettingsScreen(
@@ -110,6 +136,10 @@ class MainScreen {
         onNotesClick: () -> Unit = {},
         onProfileClick: () -> Unit = {}
     ) {
+        var text by remember { mutableStateOf("") }
+        val focusRequester = remember { FocusRequester() }
+        val keyboardController = LocalSoftwareKeyboardController.current
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,8 +151,21 @@ class MainScreen {
                 color = Purple,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
+            // Hidden TextBox for Calibration
+            Box(
+                modifier = Modifier
+                    .size(1.dp)
+                    .graphicsLayer { alpha = 0f }
+                    .semantics { hideFromAccessibility() }
+            ) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+            }
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -154,9 +197,15 @@ class MainScreen {
                         color = TextGray,
                         fontSize = 13.sp
                     )
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(16.dp))
+
+                    Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = { Log.d("DEBUG", "Start tapped") },
+                        onClick = {
+                            Log.d("DEBUG", "Start tapped")
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(52.dp),
@@ -203,7 +252,15 @@ class MainScreen {
                     modifier = Modifier.weight(1f),
                     title = "Recalibrate",
                     subtitle = "Adjust Voice Preferences",
-                    onClick = { Log.d("DEBUG", "Recalibrate tapped") }
+                    onClick = {
+                        Log.d("DEBUG", "Recalibrate tapped")
+                        // Calibration Process
+                        cal.calibrateNew()
+
+                        // Opens the Keyboard Automatically so the Calibration happens
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
+                    }
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
@@ -239,7 +296,7 @@ class MainScreen {
                     modifier = Modifier
                         .size(36.dp)
                         .background(PurpleLight, RoundedCornerShape(10.dp))
-                )
+                    )
                 Column {
                     Text(
                         text = title,

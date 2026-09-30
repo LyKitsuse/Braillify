@@ -58,6 +58,7 @@ class Calibrate {
         )
     )
 
+    // Basis Braille Cell: First Six Dots
     var newCalibration: List<Offset> = mutableListOf(
         Offset(0f, 0f),
         Offset(0f, 0f),

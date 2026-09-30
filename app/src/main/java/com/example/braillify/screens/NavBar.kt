@@ -9,6 +9,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 
 enum class NavTab(val label: String) {
     HOME("Home"),
@@ -25,14 +29,20 @@ fun NavBar(
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.navigationBars)   // <-- key line
+            .zIndex(1f)
+            .shadow(
+                elevation = 12.dp,
+                clip = false // Set to true if you want to clip the internal content to the shape
+            )
+            .windowInsetsPadding(WindowInsets.navigationBars),
+        containerColor = Color.White
     ) {
         NavTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
                 icon = {},
-                label = { Text(tab.label) }
+                label = { Text(tab.label, color = Color.Black) }
             )
         }
     }
