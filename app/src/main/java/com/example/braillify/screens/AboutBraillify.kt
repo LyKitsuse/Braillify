@@ -5,6 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.braillify.R
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -100,10 +104,11 @@ private fun AboutMain(
 
             Spacer(Modifier.weight(1f))
 
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(PurpleLight, RoundedCornerShape(14.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -114,10 +119,10 @@ private fun AboutMain(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(Purple, RoundedCornerShape(18.dp))
+            Image(
+                painter = painterResource(id = R.drawable.braillify_logo),
+                contentDescription = "Braillify Logo",
+                modifier = Modifier.size(72.dp)
             )
             Spacer(Modifier.height(12.dp))
             Text(
@@ -156,18 +161,21 @@ private fun AboutMain(
         InfoRow(
             title = "Developer",
             subtitle = "Meet the developers of Braillify",
+            iconRes = R.drawable.ab_developer_icon_24px,
             onClick = onDevelopers
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
             title = "Privacy Policy",
             subtitle = "Learn how we protect your data.",
+            iconRes = R.drawable.ab_privacy_policy_icon_24px,
             onClick = onPrivacy
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
             title = "Terms of Service",
             subtitle = "Read our terms and conditions.",
+            iconRes = R.drawable.ab_terms_of_service_24px,
             onClick = onTerms
         )
     }
@@ -177,6 +185,7 @@ private fun AboutMain(
 private fun InfoRow(
     title: String,
     subtitle: String,
+    iconRes: Int,
     onClick: () -> Unit
 ) {
     Card(
@@ -196,8 +205,16 @@ private fun InfoRow(
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(PurpleLight, RoundedCornerShape(8.dp))
-            )
+                    .background(PurpleLight, RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
             Spacer(Modifier.size(14.dp))
 

@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -28,10 +29,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.braillify.R
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
@@ -40,9 +43,19 @@ private val RowBackground = Color(0xFFEDEBF2)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
+private fun volumeIconFor(volume: Float): Int = when {
+    volume <= 0.35f -> R.drawable.vv_volume_low_24px
+    volume <= 0.75f -> R.drawable.vv_volume_medium_24px
+    else -> R.drawable.vv_volume_high_24px
+}
+
 @Composable
-fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
-    var volume by remember { mutableFloatStateOf(0.67f) }
+fun VoiceVolumeScreen(
+    onBack: () -> Unit = {},
+    initialVolume: Float = 1.0f,
+    onVolumeChanged: (Float) -> Unit = {}
+) {
+    var volume by remember { mutableFloatStateOf(initialVolume) }
     val percent = (volume * 100).toInt()
 
     Column(
@@ -75,10 +88,11 @@ fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(PurpleLight, RoundedCornerShape(14.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.vv_top_right_icon_24px),
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -100,8 +114,16 @@ fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .background(PurpleLight, RoundedCornerShape(28.dp))
-                )
+                        .background(PurpleLight, RoundedCornerShape(28.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = volumeIconFor(volume)),
+                        contentDescription = null,
+                        tint = Purple,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = "$percent%",
@@ -120,19 +142,23 @@ fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
 
         Spacer(Modifier.height(24.dp))
 
-        // Slider row
+        // Slider row with low/high icons on each end
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(PurpleLight, RoundedCornerShape(6.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.vv_volume_low_24px),
+                contentDescription = "Low volume",
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
             )
             Slider(
                 value = volume,
-                onValueChange = { volume = it },
+                onValueChange = {
+                    volume = it
+                    onVolumeChanged(it)
+                },
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = 12.dp),
@@ -142,16 +168,17 @@ fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
                     inactiveTrackColor = PurpleLight
                 )
             )
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(PurpleLight, RoundedCornerShape(6.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.vv_volume_high_24px),
+                contentDescription = "High volume",
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
             )
         }
 
         Spacer(Modifier.height(24.dp))
 
-        // Preset buttons
+        // Preset buttons with matching icons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -160,19 +187,31 @@ fun VoiceVolumeScreen(onBack: () -> Unit = {}) {
                 modifier = Modifier.weight(1f),
                 title = "Low",
                 subtitle = "25%",
-                onClick = { volume = 0.25f }
+                iconRes = R.drawable.vv_volume_low_24px,
+                onClick = {
+                    volume = 0.25f
+                    onVolumeChanged(0.25f)
+                }
             )
             PresetButton(
                 modifier = Modifier.weight(1f),
                 title = "Medium",
                 subtitle = "50%",
-                onClick = { volume = 0.50f }
+                iconRes = R.drawable.vv_volume_medium_24px,
+                onClick = {
+                    volume = 0.50f
+                    onVolumeChanged(0.50f)
+                }
             )
             PresetButton(
                 modifier = Modifier.weight(1f),
                 title = "High",
                 subtitle = "100%",
-                onClick = { volume = 1.0f }
+                iconRes = R.drawable.vv_volume_high_24px,
+                onClick = {
+                    volume = 1.0f
+                    onVolumeChanged(1.0f)
+                }
             )
         }
     }
@@ -183,6 +222,7 @@ private fun PresetButton(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
+    iconRes: Int,
     onClick: () -> Unit
 ) {
     Card(
@@ -201,8 +241,16 @@ private fun PresetButton(
             Box(
                 modifier = Modifier
                     .size(24.dp)
-                    .background(PurpleLight, RoundedCornerShape(6.dp))
-            )
+                    .background(PurpleLight, RoundedCornerShape(6.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(200.dp)
+                )
+            }
             Spacer(Modifier.height(6.dp))
             Text(
                 text = title,

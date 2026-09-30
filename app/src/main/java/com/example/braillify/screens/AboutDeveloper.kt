@@ -5,6 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.braillify.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,8 +47,36 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        AboutHeader(title = "Developers", onBack = onBack)
-        Spacer(Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .clickable { onBack() },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "‹", color = TextDark, fontSize = 28.sp)
+            }
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = "Developers",
+                color = TextDark,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.weight(1f))
+            Icon(
+                painter = painterResource(id = R.drawable.ad_top_right_icon_24px),
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
+            )
+        }
 
         // Team description card
         Card(
@@ -63,8 +94,16 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                 Box(
                     modifier = Modifier
                         .size(44.dp)
-                        .background(PurpleLight, RoundedCornerShape(12.dp))
-                )
+                        .background(PurpleLight, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ad_development_team_icon_24px),
+                        contentDescription = null,
+                        tint = Purple,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
                 Spacer(Modifier.size(14.dp))
                 Column {
                     Text(
@@ -75,7 +114,7 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "Braillify is a mobile application designed to help visually impaired users read and write using Braille, with the support of voice assistance and machine learning technology.",
+                        text = "Meet the team behind Braillify. We are dedicated to creating an accessible, intuitive, and reliable tool that helps make digital Braille learning easier for everyone.",
                         color = TextGray,
                         fontSize = 12.sp,
                         lineHeight = 16.sp
@@ -87,19 +126,22 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
         Spacer(Modifier.height(16.dp))
 
         // Team members
-        repeat(4) {
-            TeamMemberRow()
-            Spacer(Modifier.height(12.dp))
-        }
+        TeamMemberRow(name = "Jam Russel M. Rosal")
+        Spacer(Modifier.height(12.dp))
+        TeamMemberRow(name = "Aizle Manalo")
+        Spacer(Modifier.height(12.dp))
+        TeamMemberRow(name = "Gabrielle Sebastian P. Orlanda")
+        Spacer(Modifier.height(12.dp))
+        TeamMemberRow(name = "John Arvin R. Toribio")
     }
 }
 
 @Composable
-private fun TeamMemberRow() {
+private fun TeamMemberRow(name: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { Log.d("DEBUG", "Team Member tapped") },
+            .clickable { Log.d("DEBUG", "$name tapped") },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = RowBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -113,12 +155,20 @@ private fun TeamMemberRow() {
             Box(
                 modifier = Modifier
                     .size(32.dp)
-                    .background(PurpleLight, CircleShape)
-            )
+                    .background(PurpleLight, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ad_person_icon_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
             Spacer(Modifier.size(14.dp))
             Column {
                 Text(
-                    text = "Team Member 1",
+                    text = name,
                     color = TextDark,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
