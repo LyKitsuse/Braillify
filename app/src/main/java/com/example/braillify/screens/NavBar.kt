@@ -3,21 +3,22 @@ package com.example.braillify.screens
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
+import com.example.braillify.R
 
-enum class NavTab(val label: String) {
-    HOME("Home"),
-    KEYBOARD("Keyboard"),
-    SETTINGS("Settings")
+enum class NavTab(val label: String, val iconRes: Int) {
+    HOME("Home", R.drawable.nb_home_24px),
+    KEYBOARD("Keyboard", R.drawable.nb_keyboard_keys_24px),
+    SETTINGS("Settings", R.drawable.nb_settings_24px)
 }
 
 @Composable
@@ -29,20 +30,20 @@ fun NavBar(
     NavigationBar(
         modifier = modifier
             .fillMaxWidth()
-            .zIndex(1f)
-            .shadow(
-                elevation = 12.dp,
-                clip = false // Set to true if you want to clip the internal content to the shape
-            )
-            .windowInsetsPadding(WindowInsets.navigationBars),
-        containerColor = Color.White
+            .windowInsetsPadding(WindowInsets.navigationBars)
     ) {
         NavTab.entries.forEach { tab ->
             NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
-                icon = {},
-                label = { Text(tab.label, color = Color.Black) }
+                icon = {
+                    Icon(
+                        painter = painterResource(tab.iconRes),
+                        contentDescription = tab.label,
+                        modifier = Modifier.size(24.dp)
+                    )
+                },
+                label = { Text(tab.label) }
             )
         }
     }

@@ -11,6 +11,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.Image
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.braillify.R
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
@@ -40,6 +44,7 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -179,7 +184,9 @@ class MainScreen {
                         .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(
+                    Image(
+                        painter = painterResource(R.drawable.braillify_logo),
+                        contentDescription = "Braillify Logo",
                         modifier = Modifier
                             .size(64.dp)
                             .background(PurpleLight, RoundedCornerShape(16.dp))
@@ -193,6 +200,7 @@ class MainScreen {
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
+                        textAlign = TextAlign.Center,
                         text = "Open the Braille Keyboard and start typing.",
                         color = TextGray,
                         fontSize = 13.sp
@@ -232,12 +240,14 @@ class MainScreen {
                     modifier = Modifier.weight(1f),
                     title = "Practice Braille",
                     subtitle = "Practice Braille Code",
+                    iconRes = R.drawable.ms_practice_braille_24px,
                     onClick = onPracticeClick
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
                     title = "Notes",
                     subtitle = "Saved Notes: 99",
+                    iconRes = R.drawable.ms_notes_24px,
                     onClick = onNotesClick
                 )
             }
@@ -251,21 +261,15 @@ class MainScreen {
                 FeatureCard(
                     modifier = Modifier.weight(1f),
                     title = "Recalibrate",
-                    subtitle = "Adjust Voice Preferences",
-                    onClick = {
-                        Log.d("DEBUG", "Recalibrate tapped")
-                        // Calibration Process
-                        cal.calibrateNew()
-
-                        // Opens the Keyboard Automatically so the Calibration happens
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
-                    }
+                    subtitle = "Adjust Tap Points",
+                    iconRes = R.drawable.ms_recalibrate_24px,
+                    onClick = { Log.d("DEBUG", "Recalibrate tapped") }
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
                     title = "Profile",
                     subtitle = "Go to Saved Profiles",
+                    iconRes = R.drawable.ms_profile_24px,
                     onClick = onProfileClick
                 )
             }
@@ -277,6 +281,7 @@ class MainScreen {
         modifier: Modifier = Modifier,
         title: String,
         subtitle: String,
+        iconRes: Int? = null,
         onClick: () -> Unit
     ) {
         Card(
@@ -292,11 +297,22 @@ class MainScreen {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Spacer(
+                //Call Icon
+                Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .background(PurpleLight, RoundedCornerShape(10.dp))
-                    )
+                        .background(PurpleLight, RoundedCornerShape(10.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (iconRes != null) {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = null,
+                            tint = Purple,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
                 Column {
                     Text(
                         text = title,

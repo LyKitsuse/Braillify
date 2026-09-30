@@ -4,6 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Icon
+import androidx.compose.ui.res.painterResource
+import com.example.braillify.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,14 +44,18 @@ private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
 @Composable
-fun VoiceSpeedScreen(onBack: () -> Unit = {}) {
+fun VoiceSpeedScreen(
+    onBack: () -> Unit = {},
+    initialSpeed: String = "Normal",
+    onSpeedChanged: (String) -> Unit = {}
+) {
     val options = listOf(
-        "Slow" to "Default speed",
+        "Slow" to "A slow-paced voice speed",
         "Normal" to "Default speed",
-        "Fast" to "Default speed",
-        "Very Fast" to "Default speed"
+        "Fast" to "A fast-paced voice speed",
+        "Very Fast" to "A very fast-paced voice speed"
     )
-    var selected by remember { mutableStateOf("Normal") }
+    var selected by remember { mutableStateOf(initialSpeed) }
 
     Column(
         modifier = Modifier
@@ -80,10 +87,11 @@ fun VoiceSpeedScreen(onBack: () -> Unit = {}) {
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.weight(1f))
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(PurpleLight, RoundedCornerShape(14.dp))
+            Icon(
+                painter = painterResource(id = R.drawable.vs_top_right_icon_24px),
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -105,8 +113,16 @@ fun VoiceSpeedScreen(onBack: () -> Unit = {}) {
                 Box(
                     modifier = Modifier
                         .size(56.dp)
-                        .background(PurpleLight, RoundedCornerShape(28.dp))
-                )
+                        .background(PurpleLight, RoundedCornerShape(28.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.vs_speed_24px),
+                        contentDescription = null,
+                        tint = Purple,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = selected,
@@ -116,7 +132,7 @@ fun VoiceSpeedScreen(onBack: () -> Unit = {}) {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Balanced speed for clear\nand comfortable listening.",
+                    text = "Balanced speed for clear and comfortable listening.",
                     color = TextGray,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
@@ -131,7 +147,10 @@ fun VoiceSpeedScreen(onBack: () -> Unit = {}) {
                 title = label,
                 subtitle = sub,
                 selected = selected == label,
-                onClick = { selected = label }
+                onClick = {
+                    selected = label
+                    onSpeedChanged(label)
+                }
             )
             Spacer(Modifier.height(10.dp))
         }
