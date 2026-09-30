@@ -396,7 +396,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
         var set: String?
 
-        Log.d("DEBUG", "Algorithm SVM ran!")
         // Loop through all Points
         for(i in tapSet){
 //            set = mL_kNN1.kNN(i, pointsL2D)
