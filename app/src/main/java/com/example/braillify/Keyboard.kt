@@ -51,6 +51,8 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.example.braillify.machineLearningModels.randomForest
+import com.example.braillify.machineLearningModels.svm
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.math.abs
@@ -68,6 +70,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     private var isCapital: Boolean = false
     private var isCapitalOnce: Boolean = false
     private var isNumeral: Boolean = false
+    private val forest = randomForest()
+
+    private val mL_kNN1 = kNearestNeighbor()
+    private val mL_kNN2 = svm()
 
     private var tts: TextToSpeech? = null
     private var isTtsInitialized = false
@@ -316,6 +322,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         val isSwipe = abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
 
+                                        // If Swipe, otherwise Tap
                                         if (isSwipe) {
                                             if (abs(totalDx) > abs(totalDy)) {
                                                 if (totalDx > 0) {
@@ -419,7 +426,16 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {}
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                // Draw a purple circle for every tap
+                                for (tap in taps) {
+                                    drawCircle(
+                                        color = Color(0xFF6200EE),
+                                        radius = 10f,
+                                        center = tap
+                                    )
+                                }
+                            }
                             val overlayText = if (isCalibrating) {
                                 val currentPrompt = if (calibrationStep in calibrationPrompts.indices) {
                                     calibrationPrompts[calibrationStep]
@@ -490,11 +506,11 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
     fun runModel(tapSet: List<Offset>, pointsL2D: List<List<Offset>>): String {
         var cells = mutableListOf(false, false, false, false, false, false)
-        val ML_kNN = kNearestNeighbor()
+
         var set: String?
 
         for (i in tapSet) {
-            set = ML_kNN.kNN(i, pointsL2D)
+            set = mL_kNN1.kNN(i, pointsL2D)
             when (set) {
                 "a" -> cells[0] = true
                 "b" -> cells[1] = true
