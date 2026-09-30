@@ -396,10 +396,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
         var set: String?
 
+        Log.d("DEBUG", "Algorithm SVM ran!")
         // Loop through all Points
         for(i in tapSet){
 //            set = mL_kNN1.kNN(i, pointsL2D)
-//            set = mL_kNN2.svmAlgo(i, pointsL2D)
             set  = forest.randomForestAlgo(i, pointsL2D)
             when(set){
                 "a" -> cells[3] = true
