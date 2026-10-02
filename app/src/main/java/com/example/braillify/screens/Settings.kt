@@ -1,6 +1,7 @@
 package com.example.braillify.screens
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +59,14 @@ fun SettingsScreen(
     var showVoiceSpeed by remember { mutableStateOf(false) }
     var showVoiceVolume by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = showVoiceSpeed || showVoiceVolume || showAbout) {
+        when {
+            showVoiceSpeed  -> showVoiceSpeed = false
+            showVoiceVolume -> showVoiceVolume = false
+            showAbout       -> showAbout = false
+        }
+    }
 
     // Load once from prefs; the lambda runs only on first composition
     var voiceSpeed by remember { mutableStateOf(SettingsPrefs.getVoiceSpeed(context)) }
