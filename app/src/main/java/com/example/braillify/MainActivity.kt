@@ -21,7 +21,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
+
+        // Ensure isFirstTime is initialized to true if not present
+        if (!sharedPreferences.contains("isFirstTime")) {
+            sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
+        }
 
         setContent {
             BraillifyTheme {
@@ -33,7 +37,7 @@ class MainActivity : ComponentActivity() {
                     val board = Onboarding()
                     board.OnboardingProcess(
                         onFinished = {
-                            sharedPreferences.edit().putBoolean("isFirstTime", false).apply()
+                            setFirstTimeOff()
                             isFirstTime = false
                         }
                     )
@@ -43,5 +47,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * Saves the state of isFirstTime to false (turns off first time onboarding).
+     */
+    fun setFirstTimeOff() {
+        sharedPreferences.edit().putBoolean("isFirstTime", false).apply()
     }
 }
