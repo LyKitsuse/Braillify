@@ -1,6 +1,7 @@
 package com.example.braillify.screens
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +71,19 @@ class MainScreen {
         var showPractice by remember { mutableStateOf(false) }
         var showProfile by remember { mutableStateOf(false) }
         var settingsSubOpen by remember { mutableStateOf(false) }
+
+        BackHandler {
+            when {
+                // Close any open sub-screen first
+                showPractice -> showPractice = false
+                showNotes    -> showNotes = false
+                showProfile  -> showProfile = false
+
+                // If a tab other than Home is selected, go back to Home
+                selectedTab != NavTab.HOME -> selectedTab = NavTab.HOME
+
+            }
+        }
 
         Column(modifier = Modifier.fillMaxSize().background(Background)) {
             Box(
@@ -315,7 +329,7 @@ class MainScreen {
                             painter = painterResource(id = iconRes),
                             contentDescription = null,
                             tint = Purple,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(25.dp)
                         )
                     }
                 }
