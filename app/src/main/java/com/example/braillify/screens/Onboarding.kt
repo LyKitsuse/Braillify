@@ -1,7 +1,7 @@
 package com.example.braillify.screens
 
+import android.content.Context
 import android.util.Log
-import android.widget.Button
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,21 +22,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.braillify.Calibrate
 
 class Onboarding {
     val cardTextPadding = PaddingValues(
         top = 24.dp,
         start = 24.dp,
         end = 24.dp,
-        bottom = 0.dp // Optional, defaults to 0.dp
+        bottom = 0.dp
     )
     private val subText: Color = Color(0xff8d8f84)
     private val cardBackground: Color = Color(0xfff2efeb)
@@ -44,42 +45,67 @@ class Onboarding {
     val subTextFont = 13.sp
     val mainTextFont = 16.sp
 
-    // Calibrate Btn
     @Preview(showBackground = true)
     @Composable
-    fun OnboardingProcess() {
+    fun OnboardingProcess(onFinished: () -> Unit = {}) {
         var stepsAchieved by remember { mutableStateOf(0) }
-        var messageInstruction by remember { mutableStateOf("nullTitle") }
-        var messageDescription by remember { mutableStateOf("nullDescription.") }
-        var interactableButton by remember { mutableStateOf("nullButton") }
-        var warningDesc by remember { mutableStateOf("Please turn on essential settings to complete setup and continue.") }
+        val context = LocalContext.current
 
-        // Main Screen
-        Log.d("DEBUG", "Entered Onboarding")
-        Box{
+        val messageInstruction: String
+        val messageDescription: String
+        val interactableButton: String
+        val warningDesc: String
+
+        when (stepsAchieved) {
+            0 -> {
+                messageInstruction = "Step 1: Enable Accessibility Service"
+                messageDescription = "Braillify requires the Braille Accessibility Service to assist with reading and typing Braille across your device."
+                interactableButton = "Enable Service"
+                warningDesc = "Please enable accessibility service to continue."
+            }
+            1 -> {
+                messageInstruction = "Step 2: Calibrate Touch Points"
+                messageDescription = "Calibrate your screen touch points to ensure accurate Braille dot detection and typing precision."
+                interactableButton = "Calibrate Now"
+                warningDesc = "Please complete calibration to continue."
+            }
+            else -> {
+                messageInstruction = "Step 3: Voice & Haptic Feedback"
+                messageDescription = "Configure voice assistance, volume, and haptic feedback preferences for the best interactive experience."
+                interactableButton = "Open Settings"
+                warningDesc = "Almost done! Click Continue to finish setup."
+            }
+        }
+
+        Log.d("DEBUG", "Entered Onboarding, step: $stepsAchieved")
+        Box {
             Spacer(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White)
             )
-            Column (
+            Column(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
-            )
-            {
+            ) {
                 welcomeMessage()
                 infoCard(messageInstruction, messageDescription)
-                buttonInteract(interactableButton)
-                continueInteract(warningDesc)
+                buttonInteract(interactableButton, stepsAchieved, context)
+                continueInteract(warningDesc) {
+                    Log.d("DEBUG", "Clicked Continue, step: $stepsAchieved")
+                    if (stepsAchieved < 2) {
+                        stepsAchieved++
+                    } else {
+                        onFinished()
+                    }
+                }
             }
-
         }
-
     }
 
     @Composable
     fun welcomeMessage() {
-        Column (
+        Column(
             Modifier
                 .padding(cardTextPadding)
                 .fillMaxWidth()
@@ -92,7 +118,7 @@ class Onboarding {
                 modifier = Modifier
                     .padding(bottom = 24.dp)
             )
-            Column (
+            Column(
                 Modifier
                     .fillMaxWidth()
                     .clip(
@@ -122,7 +148,8 @@ class Onboarding {
                     fontWeight = FontWeight.Bold,
                     fontSize = subTextFont,
                     modifier = Modifier
-                        .padding(top = 24.dp,
+                        .padding(
+                            top = 24.dp,
                             start = 24.dp,
                             end = 24.dp,
                             bottom = 24.dp
@@ -130,13 +157,11 @@ class Onboarding {
                 )
             }
         }
-
     }
 
     @Composable
     fun infoCard(messInstruction: String, messDesc: String) {
-        // Changes info after step, there are three steps
-        Column (
+        Column(
             Modifier
                 .fillMaxWidth()
                 .padding(cardTextPadding)
@@ -159,7 +184,8 @@ class Onboarding {
                 fontWeight = FontWeight.Bold,
                 fontSize = subTextFont,
                 modifier = Modifier
-                    .padding(top = 24.dp,
+                    .padding(
+                        top = 24.dp,
                         start = 24.dp,
                         end = 24.dp,
                         bottom = 24.dp
@@ -169,10 +195,27 @@ class Onboarding {
     }
 
     @Composable
-    fun buttonInteract(buttDesc: String) {
+    fun buttonInteract(buttDesc: String, stepsAchieved: Int, context: Context) {
         Button(
             onClick = {
-                Log.d("DEBUG", "Clicked Action Button")
+                Log.d("DEBUG", "Clicked Action Button for step $stepsAchieved")
+                when (stepsAchieved) {
+                    0 -> {
+                        try {
+                            val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e("DEBUG", "Error opening accessibility settings", e)
+                        }
+                    }
+                    1 -> {
+                        Calibrate().calibrateNew()
+                        Log.d("DEBUG", "Calibration triggered")
+                    }
+                    else -> {
+                        Log.d("DEBUG", "Settings action clicked")
+                    }
+                }
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B3FE4)),
             modifier = Modifier
@@ -192,28 +235,26 @@ class Onboarding {
     }
 
     @Composable
-    fun continueInteract(warningDesc: String) {
-        Column() {
+    fun continueInteract(warningDesc: String, onContinueClick: () -> Unit) {
+        Column {
             Text(
                 text = warningDesc,
                 fontWeight = FontWeight.Bold,
                 color = Color.Red,
                 fontSize = 10.sp,
                 modifier = Modifier
-                    .padding(top = 12.dp,
+                    .padding(
+                        top = 12.dp,
                         start = 24.dp,
                         end = 24.dp,
                         bottom = 0.dp
                     )
-
             )
             ElevatedButton(
-                onClick = {
-                    Log.d("DEBUG", "Clicked Continue")
-                },
+                onClick = onContinueClick,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = cardBackground,      // Button background color
-                    contentColor = Color.Black        // Text/Icon color inside button
+                    containerColor = cardBackground,
+                    contentColor = Color.Black
                 ),
                 modifier = Modifier
                     .padding(
@@ -230,7 +271,5 @@ class Onboarding {
                 )
             }
         }
-
     }
-
 }

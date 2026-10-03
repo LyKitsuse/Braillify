@@ -5,6 +5,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.braillify.ui.theme.BraillifyTheme
 import com.example.braillify.screens.MainScreen
 import com.example.braillify.screens.Onboarding
@@ -18,16 +22,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val isFirstTime = sharedPreferences.getBoolean("isFirstTime", false)
-
         setContent {
             BraillifyTheme {
+                var isFirstTime by remember {
+                    mutableStateOf(sharedPreferences.getBoolean("isFirstTime", true))
+                }
+
                 if (isFirstTime) {
-                    // Onboarding
-                    sharedPreferences.edit().putBoolean("isFirstTime", false).apply()
-                    // OnboardingScreen()
+                    val board = Onboarding()
+                    board.OnboardingProcess(
+                        onFinished = {
+                            sharedPreferences.edit().putBoolean("isFirstTime", false).apply()
+                            isFirstTime = false
+                        }
+                    )
                 } else {
-                    // Main app
                     val mainUI = MainScreen()
                     mainUI.MainScreenUI()
                 }
