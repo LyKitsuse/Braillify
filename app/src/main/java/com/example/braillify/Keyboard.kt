@@ -241,8 +241,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
         composeView.setContent {
             BraillifyTheme {
-                val context = LocalContext.current
-
                 val configuration = LocalConfiguration.current
                 var statusLabel by remember { mutableStateOf("Ready") }
                 var modeLabel by remember { mutableStateOf("Lowercase") }
