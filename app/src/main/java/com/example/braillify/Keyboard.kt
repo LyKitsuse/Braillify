@@ -90,7 +90,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
         // Array of Words the TTS should Say during Calibration
         val calibrationPrompts = listOf(
-            "Input Braille Cell",
+            "Input Dot 1", "Input Dot 2", "Input Dot 3", "Input Dot 4", "Input Dot 5", "Input Dot 6",
             "Input a", "Input b", "Input c", "Input d", "Input e", "Input f", "Input g",
             "Input h", "Input i", "Input j", "Input k", "Input l", "Input m", "Input n",
             "Input o", "Input p", "Input q", "Input r", "Input s", "Input t", "Input u",
@@ -170,10 +170,18 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         super.onWindowHidden()
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        if (isCalibrating) {
+            val cal = Calibrate()
+            cal.exitCalibration(this)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        if (isCalibrating) {
+            val cal = Calibrate()
+            cal.exitCalibration(this)
+        }
         tts?.stop()
         tts?.shutdown()
         tts = null
@@ -246,8 +254,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                 var testIncrement by remember { mutableStateOf(0) }
                 var printTapPos by remember { mutableStateOf("") }
-
-                var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
                 if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ||
                     configuration.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -338,7 +344,15 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         // If Swipe, otherwise Tap
                                         if (isSwipe) {
-                                            if (abs(totalDx) > abs(totalDy)) {
+                                            if (isCalibrating) {
+                                                cal.exitCalibration(this@Keyboard)
+                                                speakText("Calibration cancelled")
+                                                statusLabel = "Ready"
+                                                printTapPos = ""
+                                                if (totalDy > 0 && maxFingers >= 2) {
+                                                    requestHideSelf(0)
+                                                }
+                                            } else if (abs(totalDx) > abs(totalDy)) {
                                                 if (totalDx > 0) {
                                                     if (maxFingers == 1) {
                                                         currentInputConnection?.commitText(" ", 1)
@@ -382,19 +396,19 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 }
                                             }
                                         } else {
+                                            // If Calibrating
                                             if (isCalibrating) {
-                                                if (calibrationStep == 0) {
-                                                    val success = cal.processInitialCell(taps)
-                                                    if (success) {
-                                                        calibrationStep = 1
-                                                        speakCalibrationStep()
-                                                        statusLabel = "Calibration: ${calibrationPrompts[calibrationStep]}"
-                                                    } else {
-                                                        speakText("Please place all 6 fingers on the screen")
-                                                        statusLabel = "Error: Place 6 fingers"
-                                                    }
-                                                } else if (calibrationStep in 1 until calibrationPrompts.size) {
-                                                    if (taps.isNotEmpty()) {
+                                                if (taps.isNotEmpty()) {
+                                                    // Calibrates the first inputs
+                                                    if (calibrationStep <= 5) {
+                                                        cal.recordInitialDot(calibrationStep, taps.first())
+                                                        calibrationStep++
+                                                        if (calibrationStep < calibrationPrompts.size) {
+                                                            speakCalibrationStep()
+                                                            statusLabel = "Calibration: ${calibrationPrompts[calibrationStep]}"
+                                                        }
+                                                        // Calibrates per letter
+                                                    } else if (calibrationStep in 6 until calibrationPrompts.size) {
                                                         for (p in taps) {
                                                             cal.appendCalibratedPoint(p)
                                                         }
@@ -412,6 +426,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                         }
                                                     }
                                                 }
+                                                // If the Input is a dot point
                                             } else {
                                                 val rawOutput = runModel(taps, cal.calibratedMain)
                                                 val brailleOutput = processRawBraille(rawOutput, dict)

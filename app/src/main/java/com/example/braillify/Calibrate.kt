@@ -9,54 +9,57 @@ import org.json.JSONObject
 import java.io.File
 
 class Calibrate {
-    /**
-     * Store the Data in a 2D List with 6 Rows (Dots 1 to 6) and n amount of Columns
-     */
-    var calibratedMain: List<MutableList<Offset>> = mutableListOf(
-        // Initial Data (Fallback), will be replaced when pullCalibratedData() is run.
-        // Dot 1 (a)
-        mutableListOf(
-            Offset(340f, 170f),
-            Offset(365f, 170f),
-            Offset(365f, 195f),
-            Offset(340f, 195f)
-        ),
-        // Dot 2 (b)
-        mutableListOf(
-            Offset(340f, 380f),
-            Offset(365f, 380f),
-            Offset(365f, 405f),
-            Offset(340f, 405f)
-        ),
-        // Dot 3 (c)
-        mutableListOf(
-            Offset(340f, 550f),
-            Offset(365f, 550f),
-            Offset(365f, 575f),
-            Offset(340f, 575f)
-        ),
-        // Dot 4 (d)
-        mutableListOf(
-            Offset(1250f, 170f),
-            Offset(1275f, 170f),
-            Offset(1275f, 195f),
-            Offset(1250f, 195f)
-        ),
-        // Dot 5 (e)
-        mutableListOf(
-            Offset(1250f, 380f),
-            Offset(1275f, 380f),
-            Offset(1275f, 405f),
-            Offset(1250f, 405f)
-        ),
-        // Dot 6 (f)
-        mutableListOf(
-            Offset(1250f, 550f),
-            Offset(1275f, 550f),
-            Offset(1275f, 575f),
-            Offset(1250f, 575f)
+    fun getDefaultCalibratedData(): List<MutableList<Offset>> {
+        return mutableListOf(
+            // Initial Data (Fallback)
+            // Dot 1 (a)
+            mutableListOf(
+                Offset(340f, 170f),
+                Offset(365f, 170f),
+                Offset(365f, 195f),
+                Offset(340f, 195f)
+            ),
+            // Dot 2 (b)
+            mutableListOf(
+                Offset(340f, 380f),
+                Offset(365f, 380f),
+                Offset(365f, 405f),
+                Offset(340f, 405f)
+            ),
+            // Dot 3 (c)
+            mutableListOf(
+                Offset(340f, 550f),
+                Offset(365f, 550f),
+                Offset(365f, 575f),
+                Offset(340f, 575f)
+            ),
+            // Dot 4 (d)
+            mutableListOf(
+                Offset(1250f, 170f),
+                Offset(1275f, 170f),
+                Offset(1275f, 195f),
+                Offset(1250f, 195f)
+            ),
+            // Dot 5 (e)
+            mutableListOf(
+                Offset(1250f, 380f),
+                Offset(1275f, 380f),
+                Offset(1275f, 405f),
+                Offset(1250f, 405f)
+            ),
+            // Dot 6 (f)
+            mutableListOf(
+                Offset(1250f, 550f),
+                Offset(1275f, 550f),
+                Offset(1275f, 575f),
+                Offset(1250f, 575f)
+            )
         )
-    )
+    }
+    
+     // Store the Data in a 2D List with 6 Rows (Dots 1 to 6) and n amount of Columns
+     
+    var calibratedMain: List<MutableList<Offset>> = getDefaultCalibratedData()
 
     // Basis Braille Cell: First Six Dots
     var newCalibration: List<Offset> = mutableListOf(
@@ -71,7 +74,10 @@ class Calibrate {
     fun pullCalibratedData(context: Context): List<MutableList<Offset>>? {
         try {
             val file = File(context.filesDir, "calibrated_data.json")
-            if (!file.exists()) return null
+            if (!file.exists()) {
+                calibratedMain = getDefaultCalibratedData()
+                return null
+            }
             val jsonString = file.readText()
             val rootArray = JSONArray(jsonString)
             if (rootArray.length() == 6) {
@@ -94,6 +100,7 @@ class Calibrate {
         } catch (e: Exception) {
             Log.e("Calibrate", "Error pulling calibrated data", e)
         }
+        calibratedMain = getDefaultCalibratedData()
         return null
     }
 
@@ -126,6 +133,37 @@ class Calibrate {
         )
         Keyboard.isCalibrating = true
         Keyboard.calibrationStep = 0
+    }
+
+    fun exitCalibration(context: Context) {
+        Keyboard.isCalibrating = false
+        Keyboard.calibrationStep = 0
+        newCalibration = mutableListOf(
+            Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f),
+            Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f)
+        )
+        if (pullCalibratedData(context) == null) {
+            calibratedMain = getDefaultCalibratedData()
+        }
+    }
+
+    fun recordInitialDot(dotIndex: Int, point: Offset) {
+        if (dotIndex in 0..5) {
+            val mutableNew = newCalibration.toMutableList()
+            mutableNew[dotIndex] = point
+            newCalibration = mutableNew
+
+            if (dotIndex == 5) {
+                calibratedMain = mutableListOf(
+                    mutableListOf(newCalibration[0]),
+                    mutableListOf(newCalibration[1]),
+                    mutableListOf(newCalibration[2]),
+                    mutableListOf(newCalibration[3]),
+                    mutableListOf(newCalibration[4]),
+                    mutableListOf(newCalibration[5])
+                )
+            }
+        }
     }
 
     fun processInitialCell(taps: List<Offset>): Boolean {
