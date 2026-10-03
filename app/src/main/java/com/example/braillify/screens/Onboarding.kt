@@ -6,10 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -78,14 +80,15 @@ class Onboarding {
         }
 
         Log.d("DEBUG", "Entered Onboarding, step: $stepsAchieved")
-        Box {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .windowInsetsPadding(WindowInsets.statusBars)
+        ) {
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .verticalScroll(rememberScrollState())
             ) {
                 welcomeMessage()
