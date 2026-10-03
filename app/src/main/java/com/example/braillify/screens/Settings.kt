@@ -75,11 +75,12 @@ fun SettingsScreen(
     // Load once from prefs; the lambda runs only on first composition
     var voiceSpeed by remember { mutableStateOf(SettingsPrefs.getVoiceSpeed(context)) }
     var voiceVolume by remember { mutableFloatStateOf(SettingsPrefs.getVoiceVolume(context)) }
-    var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
     var landscapeTyping by remember { mutableStateOf(SettingsPrefs.getLandscapeTyping(context)) }
     var latencyDelay by remember { mutableStateOf(SettingsPrefs.getLatencyDelay(context)) }
     var sequentialMode by remember { mutableStateOf(SettingsPrefs.getSequentialMode(context)) }
+
+    var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
     onSubScreenChanged(showVoiceSpeed || showVoiceVolume || showAbout)
 
