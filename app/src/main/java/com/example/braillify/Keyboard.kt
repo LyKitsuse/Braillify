@@ -1,7 +1,11 @@
 package com.example.braillify
 
+import android.content.Context
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
@@ -31,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.hideFromAccessibility
@@ -53,6 +58,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.example.braillify.screens.SettingsPrefs
 import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 import kotlin.math.abs
@@ -227,6 +233,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
         composeView.setContent {
             BraillifyTheme {
+                val context = LocalContext.current
+
                 val configuration = LocalConfiguration.current
                 var statusLabel by remember { mutableStateOf("Ready") }
                 var modeLabel by remember { mutableStateOf("Lowercase") }
@@ -238,6 +246,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                 var testIncrement by remember { mutableStateOf(0) }
                 var printTapPos by remember { mutableStateOf("") }
+
+                var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
                 if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ||
                     configuration.orientation == Configuration.ORIENTATION_PORTRAIT
@@ -273,6 +283,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             taps.add(pointer.position)
                                             Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
                                         }
+
+                                        vibratePhone()
 
                                         val sb = StringBuilder("### Input $testIncrement ###\n")
                                         for (tap in taps) {
@@ -479,6 +491,19 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
             }
         }
         return composeView
+    }
+
+    fun vibratePhone(){
+        if(SettingsPrefs.getHapticOn(this)){
+            // Vibrates Phone
+            val vibrator = this@Keyboard.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(100)
+            }
+        }
     }
 
     private fun deleteWordBackward() {
