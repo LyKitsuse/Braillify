@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -140,7 +140,7 @@ class MainScreen {
             }
 
             // Hide NavBar on sub-screens (Notes, Practice, or Settings sub-screen)
-            if (!showNotes && !showPractice && !settingsSubOpen) {
+            if (!showNotes && !showPractice && !settingsSubOpen && !showProfile) {
                 NavBar(
                     selectedTab = selectedTab,
                     onTabSelected = { selectedTab = it }
@@ -306,7 +306,7 @@ class MainScreen {
     ) {
         Card(
             onClick = onClick,
-            modifier = modifier.aspectRatio(1f),
+            modifier = modifier.heightIn(min = 140.dp),
             shape = RoundedCornerShape(18.dp),
             colors = CardDefaults.cardColors(containerColor = CardWhite),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -333,6 +333,7 @@ class MainScreen {
                         )
                     }
                 }
+                Spacer(Modifier.height(12.dp))
                 Column {
                     Text(
                         text = title,
