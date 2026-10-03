@@ -21,6 +21,10 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -73,6 +77,10 @@ fun SettingsScreen(
     var voiceVolume by remember { mutableFloatStateOf(SettingsPrefs.getVoiceVolume(context)) }
     var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
+    var landscapeTyping by remember { mutableStateOf(SettingsPrefs.getLandscapeTyping(context)) }
+    var latencyDelay by remember { mutableStateOf(SettingsPrefs.getLatencyDelay(context)) }
+    var sequentialMode by remember { mutableStateOf(SettingsPrefs.getSequentialMode(context)) }
+
     onSubScreenChanged(showVoiceSpeed || showVoiceVolume || showAbout)
 
     when {
@@ -98,9 +106,24 @@ fun SettingsScreen(
             voiceSpeed = voiceSpeed,
             voiceVolume = voiceVolume,
             hapticOn = hapticOn,
+            landscapeTyping = landscapeTyping,
+            latencyDelay = latencyDelay,
+            sequentialMode = sequentialMode,
             onHapticChanged = {
                 hapticOn = it
                 SettingsPrefs.setHapticOn(context, it)
+            },
+            onLandscapeTypingChanged = {
+                landscapeTyping = it
+                SettingsPrefs.setLandscapeTyping(context, it)
+            },
+            onLatencyDelayChanged = {
+                latencyDelay = it
+                SettingsPrefs.setLatencyDelay(context, it)
+            },
+            onSequentialModeChanged = {
+                sequentialMode = it
+                SettingsPrefs.setSequentialMode(context, it)
             },
             onVoiceSpeed = { showVoiceSpeed = true },
             onVoiceVolume = { showVoiceVolume = true },
@@ -115,13 +138,20 @@ private fun SettingsMain(
     voiceSpeed: String,
     voiceVolume: Float,
     hapticOn: Boolean,
+    landscapeTyping: Boolean,
+    latencyDelay: Int,
+    sequentialMode: Boolean,
     onHapticChanged: (Boolean) -> Unit,
+    onLandscapeTypingChanged: (Boolean) -> Unit,
+    onLatencyDelayChanged: (Int) -> Unit,
+    onSequentialModeChanged: (Boolean) -> Unit,
     onVoiceSpeed: () -> Unit,
     onVoiceVolume: () -> Unit,
     onAboutClick: () -> Unit
 ) {
     val context = LocalContext.current
     var showExitDialog by remember { mutableStateOf(false) }
+    var showInputModeDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -168,6 +198,39 @@ private fun SettingsMain(
             title = "Voice Volume",
             subtitle = "${(voiceVolume * 100).toInt()}%",
             onClick = onVoiceVolume
+        )
+
+        Spacer(Modifier.height(24.dp))
+        SectionTitle("Keyboard Preferences")
+        Spacer(Modifier.height(8.dp))
+
+        SwitchRow(
+            title = "Landscape Typing Preference",
+            subtitle = "Effective even in portrait",
+            checked = landscapeTyping,
+            onCheckedChange = onLandscapeTypingChanged
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        SliderRow(
+            title = "Latency Delay",
+            subtitle = "${latencyDelay}ms",
+            value = latencyDelay.toFloat(),
+            valueRange = 0f..180f,
+            steps = 179,
+            onValueChange = { onLatencyDelayChanged(it.toInt()) }
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        SettingsRow(
+            title = "Input Mode",
+            subtitle = if (sequentialMode) "Sequential" else "Simultaneous",
+            onClick = {
+                Log.d("DEBUG", "Input Mode clicked, setting dialog true")
+                showInputModeDialog = true
+            }
         )
 
         Spacer(Modifier.height(24.dp))
@@ -257,6 +320,47 @@ private fun SettingsMain(
             shape = RoundedCornerShape(18.dp)
         )
     }
+
+    // Input Mode Dialog
+    if (showInputModeDialog) {
+        AlertDialog(
+            onDismissRequest = { showInputModeDialog = false },
+            title = {
+                Text(
+                    text = "Input Mode",
+                    color = TextDark,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    RadioOptionRow(
+                        label = "Simultaneous",
+                        selected = !sequentialMode,
+                        onClick = {
+                            onSequentialModeChanged(false)
+                            showInputModeDialog = false
+                        }
+                    )
+                    RadioOptionRow(
+                        label = "Sequential",
+                        selected = sequentialMode,
+                        onClick = {
+                            onSequentialModeChanged(true)
+                            showInputModeDialog = false
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInputModeDialog = false }) {
+                    Text(text = "Cancel", color = TextGray)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(18.dp)
+        )
+    }
 }
 
 @Composable
@@ -291,7 +395,6 @@ private fun SettingsRow(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             if (iconRes != null) {
                 Box(
                     modifier = Modifier
@@ -337,6 +440,141 @@ private fun SettingsRow(
                 Text(text = "›", color = TextGray, fontSize = 20.sp)
             }
         }
+    }
+}
+
+@Composable
+private fun SwitchRow(
+    title: String,
+    subtitle: String? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = RowBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    color = TextDark,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                if (subtitle != null) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = subtitle,
+                        color = TextGray,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Purple,
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color(0xFFBDBDBD)
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun SliderRow(
+    title: String,
+    subtitle: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onValueChange: (Float) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = RowBackground),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    color = TextDark,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = subtitle,
+                    color = Purple,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Slider(
+                value = value,
+                onValueChange = onValueChange,
+                valueRange = valueRange,
+                steps = steps,
+                colors = SliderDefaults.colors(
+                    thumbColor = Color.White,
+                    activeTrackColor = Purple,
+                    inactiveTrackColor = PurpleLight
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun RadioOptionRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = Purple,
+                unselectedColor = Color(0xFFBDBDBD)
+            )
+        )
+        Spacer(Modifier.size(12.dp))
+        Text(
+            text = label,
+            color = TextDark,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
