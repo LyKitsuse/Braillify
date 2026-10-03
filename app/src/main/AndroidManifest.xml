@@ -45,6 +45,7 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Braillify"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize|uiMode"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
