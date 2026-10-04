@@ -159,8 +159,9 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         initTts()
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val cal = Calibrate()
-        cal.pullCalibratedData(this)
+        cal.pullCalibratedData(this, isLandscape)
         if (isCalibrating) {
             speakCalibrationStep()
         }
@@ -171,16 +172,18 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         if (isCalibrating) {
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val cal = Calibrate()
-            cal.exitCalibration(this)
+            cal.exitCalibration(this, isLandscape)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
         if (isCalibrating) {
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val cal = Calibrate()
-            cal.exitCalibration(this)
+            cal.exitCalibration(this, isLandscape)
         }
         tts?.stop()
         tts?.shutdown()
@@ -242,6 +245,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         composeView.setContent {
             BraillifyTheme {
                 val configuration = LocalConfiguration.current
+                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
                 var statusLabel by remember { mutableStateOf("Ready") }
                 var modeLabel by remember { mutableStateOf("Lowercase") }
                 val taps = remember { mutableStateListOf<Offset>() }
@@ -249,13 +253,12 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var brailleOutput by remember { mutableStateOf("") }
 
                 val cal = remember { Calibrate() }
-                cal.pullCalibratedData(this@Keyboard)
+                cal.pullCalibratedData(this@Keyboard, isLandscape)
 
                 var testIncrement by remember { mutableStateOf(0) }
                 var printTapPos by remember { mutableStateOf("") }
 
-                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE ||
-                    configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || configuration.orientation == Configuration.ORIENTATION_PORTRAIT
                 ) {
                     Column(
                         modifier = Modifier
@@ -291,14 +294,14 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         vibratePhone()
 
-                                        val sb = StringBuilder("### Input $testIncrement ###\n")
-                                        for (tap in taps) {
-                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
-                                        }
-
-                                        printTapPos = sb.toString()
-                                        testIncrement++
-                                        Log.d("DataColl", printTapPos)
+//                                        val sb = StringBuilder("### Input $testIncrement ###\n")
+//                                        for (tap in taps) {
+//                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
+//                                        }
+//
+//                                        printTapPos = sb.toString()
+//                                        testIncrement++
+//                                        Log.d("DataColl", printTapPos)
 
                                         val pointerStarts = mutableMapOf<Long, Offset>()
                                         val pointerEnds = mutableMapOf<Long, Offset>()
@@ -343,92 +346,27 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         // If Swipe, otherwise Tap
                                         if (isSwipe) {
-                                            if (isCalibrating) {
-                                                cal.exitCalibration(this@Keyboard)
-                                                speakText("Calibration cancelled")
-                                                statusLabel = "Ready"
-                                                printTapPos = ""
-                                                if (totalDy > 0 && maxFingers >= 2) {
-                                                    requestHideSelf(0)
-                                                }
-                                            } else if (abs(totalDx) > abs(totalDy)) {
-                                                if (totalDx > 0) {
-                                                    if (maxFingers == 1) {
-                                                        currentInputConnection?.commitText(" ", 1)
-                                                        statusLabel = "Space"
-                                                        speakText("Space")
-                                                    } else if (maxFingers == 2) {
-                                                        currentInputConnection?.commitText("\n", 1)
-                                                        statusLabel = "New Line"
-                                                        speakText("New Line")
-                                                    }
-                                                } else {
-                                                    if (maxFingers == 1) {
-                                                        currentInputConnection?.deleteSurroundingText(1, 0)
-                                                        statusLabel = "Delete"
-                                                        speakText("Delete")
-                                                    } else if (maxFingers == 2) {
-                                                        deleteWordBackward()
-                                                        statusLabel = "Delete Word"
-                                                        speakText("Delete Word")
-                                                    }
-                                                }
-                                            } else {
-                                                if (totalDy > 0) {
-                                                    if (maxFingers == 2) requestHideSelf(0)
-                                                    else if (maxFingers == 3) {
-                                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                                                            switchToNextInputMethod(false)
-                                                        }
-                                                    }
-                                                } else {
-                                                    if (maxFingers == 2) {
-                                                        val action = currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
-                                                        if (action != null && action != EditorInfo.IME_ACTION_NONE) {
-                                                            currentInputConnection?.performEditorAction(action)
-                                                        } else {
-                                                            currentInputConnection?.commitText("\n", 1)
-                                                        }
-                                                        statusLabel = "Submit"
-                                                        speakText("Submit")
-                                                    }
-                                                }
-                                            }
+                                            swiping(
+                                                totalDx = totalDx,
+                                                totalDy = totalDy,
+                                                maxFingers = maxFingers,
+                                                cal = cal,
+                                                statusLabelSetter = { statusLabel = it },
+                                                printTapPosSetter = { printTapPos = it }
+                                            )
                                         } else {
                                             // If Calibrating
                                             if (isCalibrating) {
-                                                if (taps.isNotEmpty()) {
-                                                    // Calibrates the first inputs
-                                                    if (calibrationStep <= 5) {
-                                                        cal.recordInitialDot(calibrationStep, taps.first())
-                                                        calibrationStep++
-                                                        if (calibrationStep < calibrationPrompts.size) {
-                                                            speakCalibrationStep()
-                                                            statusLabel = "Calibration: ${calibrationPrompts[calibrationStep]}"
-                                                        }
-                                                        // Calibrates per letter
-                                                    } else if (calibrationStep in 6 until calibrationPrompts.size) {
-                                                        for (p in taps) {
-                                                            cal.appendCalibratedPoint(p)
-                                                        }
-                                                        calibrationStep++
-                                                        if (calibrationStep < calibrationPrompts.size) {
-                                                            speakCalibrationStep()
-                                                            statusLabel = "Calibration: ${calibrationPrompts[calibrationStep]}"
-                                                        } else {
-                                                            cal.saveCalibratedData(this@Keyboard, cal.calibratedMain)
-                                                            isCalibrating = false
-                                                            calibrationStep = 0
-                                                            speakText("Calibration complete")
-                                                            statusLabel = "Calibration Complete!"
-                                                            printTapPos = "Calibration Complete!\nTap Anywhere to Type"
-                                                        }
-                                                    }
-                                                }
-                                                // If the Input is a dot point
+                                                calibrationProcess(
+                                                    taps = taps,
+                                                    cal = cal,
+                                                    statusLabelSetter = { statusLabel = it },
+                                                    printTapPosSetter = { printTapPos = it }
+                                                )
                                             } else {
+                                                // If the Input is a dot point
                                                 val rawOutput = runModel(taps, cal.calibratedMain)
-                                                val brailleOutput = processRawBraille(rawOutput, dict)
+                                                brailleOutput = processRawBraille(rawOutput, dict)
 
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
                                                     if (brailleOutput !in listOf(
@@ -488,23 +426,100 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                             )
                         }
                     }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Blue.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Please rotate to Landscape for Braille typing",
-                            color = Color.White,
-                            textAlign = TextAlign.Center
-                        )
-                    }
                 }
             }
         }
         return composeView
+    }
+
+    fun calibrationProcess(
+        taps: List<Offset>,
+        cal: Calibrate,
+        statusLabelSetter: (String) -> Unit,
+        printTapPosSetter: (String) -> Unit
+    ){
+        if (taps.isNotEmpty()) {
+            // Calibrates the first inputs
+            if (calibrationStep <= 5) {
+                cal.recordInitialDot(calibrationStep, taps.first())
+                calibrationStep++
+                if (calibrationStep < calibrationPrompts.size) {
+                    speakCalibrationStep()
+                    statusLabelSetter("Calibration: ${calibrationPrompts[calibrationStep]}")
+                }
+                // Calibrates per letter
+            } else if (calibrationStep in 6 until calibrationPrompts.size) {
+                for (p in taps) {
+                    cal.appendCalibratedPoint(p)
+                }
+                calibrationStep++
+                if (calibrationStep < calibrationPrompts.size) {
+                    speakCalibrationStep()
+                    statusLabelSetter("Calibration: ${calibrationPrompts[calibrationStep]}")
+                } else {
+                    val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                    cal.saveCalibratedData(this@Keyboard, cal.calibratedMain, isLandscape)
+                    isCalibrating = false
+                    calibrationStep = 0
+                    speakText("Calibration complete")
+                    statusLabelSetter("Calibration Complete!")
+                    printTapPosSetter("Calibration Complete!\nTap Anywhere to Type")
+                }
+            }
+        }
+    }
+    fun swiping(totalDx: Float,totalDy: Float,maxFingers: Int,cal: Calibrate,statusLabelSetter: (String) -> Unit,printTapPosSetter: (String) -> Unit){
+        if (isCalibrating) {
+            cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE)
+            speakText("Calibration cancelled")
+            statusLabelSetter("Ready")
+            printTapPosSetter("")
+            if (totalDy > 0 && maxFingers >= 2) {
+                requestHideSelf(0)
+            }
+        } else if (abs(totalDx) > abs(totalDy)) {
+            if (totalDx > 0) {
+                if (maxFingers == 1) {
+                    currentInputConnection?.commitText(" ", 1)
+                    statusLabelSetter("Space")
+                    speakText("Space")
+                } else if (maxFingers == 2) {
+                    currentInputConnection?.commitText("\n", 1)
+                    statusLabelSetter("New Line")
+                    speakText("New Line")
+                }
+            } else {
+                if (maxFingers == 1) {
+                    currentInputConnection?.deleteSurroundingText(1, 0)
+                    statusLabelSetter("Delete")
+                    speakText("Delete")
+                } else if (maxFingers == 2) {
+                    deleteWordBackward()
+                    statusLabelSetter("Delete Word")
+                    speakText("Delete Word")
+                }
+            }
+        } else {
+            if (totalDy > 0) {
+                if (maxFingers == 2) requestHideSelf(0)
+                else if (maxFingers == 3) {
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                        switchToNextInputMethod(false)
+                    }
+                }
+            } else {
+                if (maxFingers == 2) {
+                    val action = currentInputEditorInfo?.imeOptions?.and(EditorInfo.IME_MASK_ACTION)
+                    if (action != null && action != EditorInfo.IME_ACTION_NONE) {
+                        currentInputConnection?.performEditorAction(action)
+                    } else {
+                        currentInputConnection?.commitText("\n", 1)
+                    }
+                    statusLabelSetter("Submit")
+                    speakText("Submit")
+                }
+            }
+        }
     }
 
     fun vibratePhone(){
@@ -520,7 +535,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         }
     }
 
-    private fun deleteWordBackward() {
+    fun deleteWordBackward() {
         val ic = currentInputConnection ?: return
         val textBefore = ic.getTextBeforeCursor(100, 0) ?: ""
         if (textBefore.isEmpty()) return
@@ -551,7 +566,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         var set: String?
 
         for (i in tapSet) {
-            set  = forest.randomForestAlgo(i, pointsL2D)
+//            set  = forest.randomForestAlgo(i, pointsL2D)
+            set = mL_kNN1.kNN(i, pointsL2D)
             when (set) {
                 "a" -> cells[0] = true
                 "b" -> cells[1] = true
@@ -600,21 +616,42 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 "110010" -> "8"
                 "010100" -> "9"
                 "010110" -> "0"
+                // if not a number then print the Character
                 else -> {
-                    val original = pts.brailleConversion[brailleOutput] ?: ""
-                    val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                    val knownChar = pts.brailleConversion[brailleOutput]
+                    val result = if (knownChar != null) {
+                        if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                    } else {
+                        formatDots(brailleOutput)
+                    }
                     isCapitalOnce = false
                     result
                 }
             }
+            // print the Character
             else -> {
-                val original = pts.brailleConversion[brailleOutput] ?: ""
-                val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                val knownChar = pts.brailleConversion[brailleOutput]
+                val result = if (knownChar != null) {
+                    if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                } else {
+                    formatDots(brailleOutput)
+                }
                 isCapitalOnce = false
-                val ifNullCheck = if (result != null || result != "") result else "Null"
+                val ifNullCheck = if (result.isNotEmpty()) result else "Null"
                 ifNullCheck
             }
         }
         return output
+    }
+
+    fun formatDots(brailleOutput: String): String {
+        val activeDots = brailleOutput.mapIndexedNotNull { index, char ->
+            if (char == '1') index + 1 else null
+        }
+        return if (activeDots.isNotEmpty()) {
+            "dots ${activeDots.joinToString(" ")}"
+        } else {
+            ""
+        }
     }
 }

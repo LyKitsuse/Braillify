@@ -9,57 +9,107 @@ import org.json.JSONObject
 import java.io.File
 
 class Calibrate {
-    fun getDefaultCalibratedData(): List<MutableList<Offset>> {
-        return mutableListOf(
-            // Initial Data (Fallback)
-            // Dot 1 (a)
-            mutableListOf(
-                Offset(340f, 170f),
-                Offset(365f, 170f),
-                Offset(365f, 195f),
-                Offset(340f, 195f)
-            ),
-            // Dot 2 (b)
-            mutableListOf(
-                Offset(340f, 380f),
-                Offset(365f, 380f),
-                Offset(365f, 405f),
-                Offset(340f, 405f)
-            ),
-            // Dot 3 (c)
-            mutableListOf(
-                Offset(340f, 550f),
-                Offset(365f, 550f),
-                Offset(365f, 575f),
-                Offset(340f, 575f)
-            ),
-            // Dot 4 (d)
-            mutableListOf(
-                Offset(1250f, 170f),
-                Offset(1275f, 170f),
-                Offset(1275f, 195f),
-                Offset(1250f, 195f)
-            ),
-            // Dot 5 (e)
-            mutableListOf(
-                Offset(1250f, 380f),
-                Offset(1275f, 380f),
-                Offset(1275f, 405f),
-                Offset(1250f, 405f)
-            ),
-            // Dot 6 (f)
-            mutableListOf(
-                Offset(1250f, 550f),
-                Offset(1275f, 550f),
-                Offset(1275f, 575f),
-                Offset(1250f, 575f)
-            )
-        )
+    private fun getFileName(isLandscape: Boolean): String {
+        return if (isLandscape) "calibrated_data_landscape.json" else "calibrated_data_portrait.json"
     }
-    
-     // Store the Data in a 2D List with 6 Rows (Dots 1 to 6) and n amount of Columns
-     
-    var calibratedMain: List<MutableList<Offset>> = getDefaultCalibratedData()
+
+    fun getDefaultCalibratedData(isLandscape: Boolean = false): List<MutableList<Offset>> {
+        return if (!isLandscape) {
+            mutableListOf(
+                // Landscape default Dot 1 (a)
+                // Dot 4 (d)
+                mutableListOf(
+                    Offset(170f, 1250f),
+                    Offset(195f, 1250f),
+                    Offset(195f, 1275f),
+                    Offset(170f, 1275f)
+                ),
+                // Dot 5 (e)
+                mutableListOf(
+                    Offset(380f, 1250f),
+                    Offset(405f, 1250f),
+                    Offset(405f, 1275f),
+                    Offset(380f, 1275f)
+                ),
+                // Dot 6 (f)
+                mutableListOf(
+                    Offset(550f, 1250f),
+                    Offset(575f, 1250f),
+                    Offset(575f, 1275f),
+                    Offset(550f, 1275f)
+                ),
+                mutableListOf(
+                    Offset(170f, 340f),
+                    Offset(195f, 340f),
+                    Offset(195f, 365f),
+                    Offset(170f, 365f)
+                ),
+                // Dot 2 (b)
+                mutableListOf(
+                    Offset(380f, 340f),
+                    Offset(405f, 340f),
+                    Offset(405f, 365f),
+                    Offset(380f, 365f)
+                ),
+                // Dot 3 (c)
+                mutableListOf(
+                    Offset(550f, 340f),
+                    Offset(575f, 340f),
+                    Offset(575f, 365f),
+                    Offset(550f, 365f)
+                ),
+            )
+        } else {
+            mutableListOf(
+                // Portrait default (Fallback)
+                // Dot 1 (a)
+                // Dot 4 (d)
+                mutableListOf(
+                    Offset(1250f, 170f),
+                    Offset(1275f, 170f),
+                    Offset(1275f, 195f),
+                    Offset(1250f, 195f)
+                ),
+                // Dot 5 (e)
+                mutableListOf(
+                    Offset(1250f, 380f),
+                    Offset(1275f, 380f),
+                    Offset(1275f, 405f),
+                    Offset(1250f, 405f)
+                ),
+                // Dot 6 (f)
+                mutableListOf(
+                    Offset(1250f, 550f),
+                    Offset(1275f, 550f),
+                    Offset(1275f, 575f),
+                    Offset(1250f, 575f)
+                ),
+                mutableListOf(
+                    Offset(340f, 170f),
+                    Offset(365f, 170f),
+                    Offset(365f, 195f),
+                    Offset(340f, 195f)
+                ),
+                // Dot 2 (b)
+                mutableListOf(
+                    Offset(340f, 380f),
+                    Offset(365f, 380f),
+                    Offset(365f, 405f),
+                    Offset(340f, 405f)
+                ),
+                // Dot 3 (c)
+                mutableListOf(
+                    Offset(340f, 550f),
+                    Offset(365f, 550f),
+                    Offset(365f, 575f),
+                    Offset(340f, 575f)
+                )
+            )
+        }
+    }
+
+    // Store the Data in a 2D List with 6 Rows (Dots 1 to 6) and n amount of Columns
+    var calibratedMain: List<MutableList<Offset>> = getDefaultCalibratedData(false)
 
     // Basis Braille Cell: First Six Dots
     var newCalibration: List<Offset> = mutableListOf(
@@ -71,11 +121,19 @@ class Calibrate {
         Offset(0f, 0f)
     )
 
-    fun pullCalibratedData(context: Context): List<MutableList<Offset>>? {
+    fun pullCalibratedData(context: Context, isLandscape: Boolean = false): List<MutableList<Offset>>? {
         try {
-            val file = File(context.filesDir, "calibrated_data.json")
+            val fileName = getFileName(isLandscape)
+            var file = File(context.filesDir, fileName)
+            if (!file.exists() && !isLandscape) {
+                // Fallback to legacy calibrated_data.json for portrait
+                val legacyFile = File(context.filesDir, "calibrated_data.json")
+                if (legacyFile.exists()) {
+                    file = legacyFile
+                }
+            }
             if (!file.exists()) {
-                calibratedMain = getDefaultCalibratedData()
+                calibratedMain = getDefaultCalibratedData(isLandscape)
                 return null
             }
             val jsonString = file.readText()
@@ -94,17 +152,17 @@ class Calibrate {
                     newList.add(groupList)
                 }
                 calibratedMain = newList
-                Log.d("Calibrate", "Successfully pulled calibrated data")
+                Log.d("Calibrate", "Successfully pulled calibrated data for landscape=$isLandscape")
                 return newList
             }
         } catch (e: Exception) {
             Log.e("Calibrate", "Error pulling calibrated data", e)
         }
-        calibratedMain = getDefaultCalibratedData()
+        calibratedMain = getDefaultCalibratedData(isLandscape)
         return null
     }
 
-    fun saveCalibratedData(context: Context, data: List<List<Offset>>) {
+    fun saveCalibratedData(context: Context, data: List<List<Offset>>, isLandscape: Boolean = false) {
         try {
             val rootArray = JSONArray()
             for (dotGroup in data) {
@@ -118,9 +176,10 @@ class Calibrate {
                 }
                 rootArray.put(groupArray)
             }
-            val file = File(context.filesDir, "calibrated_data.json")
+            val fileName = getFileName(isLandscape)
+            val file = File(context.filesDir, fileName)
             file.writeText(rootArray.toString())
-            Log.d("Calibrate", "Saved calibrated data to ${file.absolutePath}")
+            Log.d("Calibrate", "Saved calibrated data for landscape=$isLandscape to ${file.absolutePath}")
         } catch (e: Exception) {
             Log.e("Calibrate", "Error saving calibrated data", e)
         }
@@ -135,15 +194,15 @@ class Calibrate {
         Keyboard.calibrationStep = 0
     }
 
-    fun exitCalibration(context: Context) {
+    fun exitCalibration(context: Context, isLandscape: Boolean = false) {
         Keyboard.isCalibrating = false
         Keyboard.calibrationStep = 0
         newCalibration = mutableListOf(
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f),
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f)
         )
-        if (pullCalibratedData(context) == null) {
-            calibratedMain = getDefaultCalibratedData()
+        if (pullCalibratedData(context, isLandscape) == null) {
+            calibratedMain = getDefaultCalibratedData(isLandscape)
         }
     }
 
