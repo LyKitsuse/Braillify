@@ -11,7 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.example.braillify.ui.theme.BraillifyTheme
 import com.example.braillify.screens.MainScreen
-import com.example.braillify.screens.Onboarding
 
 class MainActivity : ComponentActivity() {
     private val sharedPreferences by lazy {
