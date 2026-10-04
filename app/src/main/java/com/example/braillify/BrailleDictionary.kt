@@ -54,9 +54,9 @@ object BrailleDictionary {
         Offset(340f, 170f),
         Offset(340f, 380f),
         Offset(340f, 550f),
-        Offset(1250f, 170f),
-        Offset(1250f, 380f),
-        Offset(1250f, 550f),
+        Offset(700f, 170f),
+        Offset(700f, 380f),
+        Offset(700f, 550f),
     )
 
     // Synthetic Data A (Main Reference)
@@ -64,8 +64,8 @@ object BrailleDictionary {
         Offset(340f, 170f),
         Offset(340f, 380f),
         Offset(340f, 550f),
-        Offset(1250f, 170f),
-        Offset(1250f, 380f),
-        Offset(1250f, 550f)
+        Offset(700f, 170f),
+        Offset(700f, 380f),
+        Offset(700f, 550f)
     )
 }
