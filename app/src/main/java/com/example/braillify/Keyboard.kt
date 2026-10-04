@@ -250,6 +250,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var modeLabel by remember { mutableStateOf("Lowercase") }
                 val taps = remember { mutableStateListOf<Offset>() }
                 var tapEq by remember { mutableStateOf("Tap Anywhere!") }
+                var brailleOutput by remember { mutableStateOf("") }
 
                 val cal = remember { Calibrate() }
                 cal.pullCalibratedData(this@Keyboard, isLandscape)
@@ -293,14 +294,14 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         vibratePhone()
 
-                                        val sb = StringBuilder("### Input $testIncrement ###\n")
-                                        for (tap in taps) {
-                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
-                                        }
-
-                                        printTapPos = sb.toString()
-                                        testIncrement++
-                                        Log.d("DataColl", printTapPos)
+//                                        val sb = StringBuilder("### Input $testIncrement ###\n")
+//                                        for (tap in taps) {
+//                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
+//                                        }
+//
+//                                        printTapPos = sb.toString()
+//                                        testIncrement++
+//                                        Log.d("DataColl", printTapPos)
 
                                         val pointerStarts = mutableMapOf<Long, Offset>()
                                         val pointerEnds = mutableMapOf<Long, Offset>()
@@ -365,7 +366,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             } else {
                                                 // If the Input is a dot point
                                                 val rawOutput = runModel(taps, cal.calibratedMain)
-                                                val brailleOutput = processRawBraille(rawOutput, dict)
+                                                brailleOutput = processRawBraille(rawOutput, dict)
 
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
                                                     if (brailleOutput !in listOf(
@@ -406,10 +407,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                     calibrationPrompts[calibrationStep]
                                 } else "Calibration Complete!"
                                 "CALIBRATION MODE (${calibrationStep + 1}/${calibrationPrompts.size})\n$currentPrompt\n(Tap screen when ready)"
-                            } else if (printTapPos.isEmpty()) {
+                            } else if (brailleOutput.isEmpty()) {
                                 "Tap Anywhere!"
                             } else {
-                                printTapPos
+                                brailleOutput
                             }
                             Text(
                                 text = overlayText,
@@ -547,7 +548,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         }
     }
 
-    private fun deleteWordBackward() {
+    fun deleteWordBackward() {
         val ic = currentInputConnection ?: return
         val textBefore = ic.getTextBeforeCursor(100, 0) ?: ""
         if (textBefore.isEmpty()) return
@@ -628,21 +629,42 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 "110010" -> "8"
                 "010100" -> "9"
                 "010110" -> "0"
+                // if not a number then print the Character
                 else -> {
-                    val original = pts.brailleConversion[brailleOutput] ?: ""
-                    val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                    val knownChar = pts.brailleConversion[brailleOutput]
+                    val result = if (knownChar != null) {
+                        if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                    } else {
+                        formatDots(brailleOutput)
+                    }
                     isCapitalOnce = false
                     result
                 }
             }
+            // print the Character
             else -> {
-                val original = pts.brailleConversion[brailleOutput] ?: ""
-                val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                val knownChar = pts.brailleConversion[brailleOutput]
+                val result = if (knownChar != null) {
+                    if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                } else {
+                    formatDots(brailleOutput)
+                }
                 isCapitalOnce = false
-                val ifNullCheck = if (result != null || result != "") result else "Null"
+                val ifNullCheck = if (result.isNotEmpty()) result else "Null"
                 ifNullCheck
             }
         }
         return output
+    }
+
+    fun formatDots(brailleOutput: String): String {
+        val activeDots = brailleOutput.mapIndexedNotNull { index, char ->
+            if (char == '1') index + 1 else null
+        }
+        return if (activeDots.isNotEmpty()) {
+            "dots ${activeDots.joinToString(" ")}"
+        } else {
+            ""
+        }
     }
 }
