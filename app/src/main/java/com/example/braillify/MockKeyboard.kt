@@ -202,21 +202,40 @@ class MockKeyboard {
                 "010100" -> "9"
                 "010110" -> "0"
                 else -> {
-                    val original = pts.brailleConversion[brailleOutput] ?: ""
-                    val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                    val knownChar = pts.brailleConversion[brailleOutput]
+                    val result = if (knownChar != null) {
+                        if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                    } else {
+                        formatDots(brailleOutput)
+                    }
                     isCapitalOnce = false
                     result
                 }
             }
             // Fallback to standard conversion with capitalization support
             else -> {
-                val original = pts.brailleConversion[brailleOutput] ?: ""
-                val result = if (isCapital || isCapitalOnce) original.uppercase() else original
+                val knownChar = pts.brailleConversion[brailleOutput]
+                val result = if (knownChar != null) {
+                    if (isCapital || isCapitalOnce) knownChar.uppercase() else knownChar
+                } else {
+                    formatDots(brailleOutput)
+                }
                 isCapitalOnce = false // consume single capital flag
-                val ifNullCheck = if(result != null || result != "") result else "Null"
+                val ifNullCheck = if (result.isNotEmpty()) result else "Null"
                 ifNullCheck
             }
         }
         return output
+    }
+
+    fun formatDots(brailleOutput: String): String {
+        val activeDots = brailleOutput.mapIndexedNotNull { index, char ->
+            if (char == '1') index + 1 else null
+        }
+        return if (activeDots.isNotEmpty()) {
+            "dots ${activeDots.joinToString(" ")}"
+        } else {
+            ""
+        }
     }
 }

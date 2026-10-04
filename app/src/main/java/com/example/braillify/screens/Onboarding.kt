@@ -1,6 +1,8 @@
 package com.example.braillify.screens
 
+import android.R.attr.accessibilityHeading
 import android.content.Context
+import android.view.inputmethod.InputMethodManager
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -10,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -18,21 +21,31 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.hideFromAccessibility
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
+import android.content.Intent
+import android.provider.Settings
 
 class Onboarding {
     val cardTextPadding = PaddingValues(
@@ -51,31 +64,37 @@ class Onboarding {
     @Composable
     fun OnboardingProcess(onFinished: () -> Unit = {}) {
         var stepsAchieved by remember { mutableStateOf(0) }
+        var warningDesc by remember { mutableStateOf("") }
+        var isClickedYet by remember { mutableStateOf(false) }
         val context = LocalContext.current
 
         val messageInstruction: String
         val messageDescription: String
         val interactableButton: String
-        val warningDesc: String
+
+        var text by remember { mutableStateOf("") }
+        val focusRequester = remember { FocusRequester() }
+
+        LaunchedEffect(stepsAchieved) {
+            isClickedYet = false
+            warningDesc = ""
+        }
 
         when (stepsAchieved) {
             0 -> {
-                messageInstruction = "Step 1: Enable Accessibility Service"
-                messageDescription = "Braillify requires the Braille Accessibility Service to assist with reading and typing Braille across your device."
+                messageInstruction = "Step 1: Enable Talkback Shortcut"
+                messageDescription = "TalkBack touch gestures can interfere with multi-finger Braille typing. Enabling the TalkBack Shortcut lets you quickly toggle TalkBack off while typing and turn it back on when you're done."
                 interactableButton = "Enable Service"
-                warningDesc = "Please enable accessibility service to continue."
             }
             1 -> {
-                messageInstruction = "Step 2: Calibrate Touch Points"
-                messageDescription = "Calibrate your screen touch points to ensure accurate Braille dot detection and typing precision."
-                interactableButton = "Calibrate Now"
-                warningDesc = "Please complete calibration to continue."
+                messageInstruction = "Step 2: Enable Braillify Keyboard"
+                messageDescription = "Enable Braillify in your keyboard settings to start typing in Braille."
+                interactableButton = "Enable Braillify in Settings"
             }
             else -> {
-                messageInstruction = "Step 3: Voice & Haptic Feedback"
-                messageDescription = "Configure voice assistance, volume, and haptic feedback preferences for the best interactive experience."
-                interactableButton = "Open Settings"
-                warningDesc = "Almost done! Click Continue to finish setup."
+                messageInstruction = "Step 3: Calibrate Your Touchpoints"
+                messageDescription = "Tap six points on the screen to align the Braille keys with where your fingers naturally rest."
+                interactableButton = "Start Calibration"
             }
         }
 
@@ -86,6 +105,19 @@ class Onboarding {
                 .background(Color.White)
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
+            // Hidden TextBox for pulling up the keyboard from navbar or anywhere
+            Box(
+                modifier = Modifier
+                    .size(1.dp)
+                    .graphicsLayer { alpha = 0f }
+                    .semantics { hideFromAccessibility() }
+            ) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    modifier = Modifier.focusRequester(focusRequester)
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -93,8 +125,20 @@ class Onboarding {
             ) {
                 welcomeMessage()
                 infoCard(messageInstruction, messageDescription)
-                buttonInteract(interactableButton, stepsAchieved, context)
-                continueInteract(warningDesc) {
+                buttonInteract(
+                    buttDesc = interactableButton,
+                    stepsAchieved = stepsAchieved,
+                    context = context,
+                    focusRequester = focusRequester
+                ) {
+                    isClickedYet = true
+                }
+                continueInteract(
+                    currentWarningDesc = warningDesc,
+                    stepsAchieved = stepsAchieved,
+                    isClickedYet = isClickedYet,
+                    onShowWarning = { warningDesc = it }
+                ) {
                     Log.d("DEBUG", "Clicked Continue, step: $stepsAchieved")
                     if (stepsAchieved < 2) {
                         stepsAchieved++
@@ -163,7 +207,7 @@ class Onboarding {
     }
 
     @Composable
-    fun infoCard(messInstruction: String, messDesc: String) {
+    fun infoCard(messInstruction: String, messDesc: String, ) {
         Column(
             Modifier
                 .fillMaxWidth()
@@ -198,27 +242,42 @@ class Onboarding {
     }
 
     @Composable
-    fun buttonInteract(buttDesc: String, stepsAchieved: Int, context: Context) {
+    fun buttonInteract(buttDesc: String,stepsAchieved: Int,context: Context,focusRequester: FocusRequester,onClickAction: () -> Unit) {
+        val keyboardController = LocalSoftwareKeyboardController.current
+
         Button(
             onClick = {
                 Log.d("DEBUG", "Clicked Action Button for step $stepsAchieved")
                 when (stepsAchieved) {
                     0 -> {
                         try {
-                            val intent = android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
                             context.startActivity(intent)
                         } catch (e: Exception) {
                             Log.e("DEBUG", "Error opening accessibility settings", e)
                         }
                     }
                     1 -> {
-                        Calibrate().calibrateNew()
-                        Log.d("DEBUG", "Calibration triggered")
+                        try {
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Log.e("DEBUG", "Error opening accessibility settings", e)
+                        }
                     }
                     else -> {
-                        Log.d("DEBUG", "Settings action clicked")
+                        Log.d("DEBUG", "Calibration Clicked")
+                        Calibrate().calibrateNew()
+
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
                     }
                 }
+                onClickAction()
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B3FE4)),
             modifier = Modifier
@@ -238,10 +297,10 @@ class Onboarding {
     }
 
     @Composable
-    fun continueInteract(warningDesc: String, onContinueClick: () -> Unit) {
+    fun continueInteract(currentWarningDesc: String,stepsAchieved: Int,isClickedYet: Boolean,onShowWarning: (String) -> Unit,onContinueClick: () -> Unit) {
         Column {
             Text(
-                text = warningDesc,
+                text = currentWarningDesc,
                 fontWeight = FontWeight.Bold,
                 color = Color.Red,
                 fontSize = 10.sp,
@@ -254,7 +313,23 @@ class Onboarding {
                     )
             )
             ElevatedButton(
-                onClick = onContinueClick,
+                onClick = {
+                    if (!isClickedYet) {
+                        when (stepsAchieved) {
+                            0 -> {
+                                onShowWarning("Please enable accessibility service to continue.")
+                            }
+                            1 -> {
+                                onShowWarning("Please enable Braillify Keyboard on Settings.")
+                            }
+                            else -> {
+                                onShowWarning("")
+                            }
+                        }
+                    } else {
+                        onContinueClick()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = cardBackground,
                     contentColor = Color.Black

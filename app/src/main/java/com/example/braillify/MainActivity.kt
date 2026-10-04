@@ -22,17 +22,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Ensure isFirstTime is initialized to true if not present
+        // isFirstTime set to true if not set to true already
         if (!sharedPreferences.contains("isFirstTime")) {
             sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
         }
 
+        // Force isFirstTime to true
+//        sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
         setContent {
             BraillifyTheme {
                 var isFirstTime by remember {
                     mutableStateOf(sharedPreferences.getBoolean("isFirstTime", true))
                 }
 
+                // Is First Time then Onboarding Process
                 if (isFirstTime) {
                     val board = Onboarding()
                     board.OnboardingProcess(
@@ -41,6 +44,7 @@ class MainActivity : ComponentActivity() {
                             isFirstTime = false
                         }
                     )
+                // Is Not First Time then Main Screen
                 } else {
                     val mainUI = MainScreen()
                     mainUI.MainScreenUI()
