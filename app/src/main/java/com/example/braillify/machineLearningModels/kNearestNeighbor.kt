@@ -15,7 +15,7 @@ class kNearestNeighbor {
     data class Neighbor(val distance: Float, val label: String)
 
     fun kNN(epsilon: Offset, pointsRef: List<List<Offset>>): String {
-        val k = 13
+        val k = 1
 
         // Dot group labels corresponding to pointsL2D indices 0 to 5
         val labels = listOf("a", "b", "c", "d", "e", "f")

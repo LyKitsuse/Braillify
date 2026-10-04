@@ -246,6 +246,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var modeLabel by remember { mutableStateOf("Lowercase") }
                 val taps = remember { mutableStateListOf<Offset>() }
                 var tapEq by remember { mutableStateOf("Tap Anywhere!") }
+                var brailleOutput by remember { mutableStateOf("") }
 
                 val cal = remember { Calibrate() }
                 cal.pullCalibratedData(this@Keyboard)
@@ -468,10 +469,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                     calibrationPrompts[calibrationStep]
                                 } else "Calibration Complete!"
                                 "CALIBRATION MODE (${calibrationStep + 1}/${calibrationPrompts.size})\n$currentPrompt\n(Tap screen when ready)"
-                            } else if (printTapPos.isEmpty()) {
+                            } else if (brailleOutput.isEmpty()) {
                                 "Tap Anywhere!"
                             } else {
-                                printTapPos
+                                brailleOutput
                             }
                             Text(
                                 text = overlayText,
