@@ -11,8 +11,30 @@ import java.io.File
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun testPortraitDefaultDotsOrientation() {
+        val calibrate = Calibrate()
+        val portraitData = calibrate.getDefaultCalibratedData(isLandscape = false)
+        
+        val leftDot1X = portraitData[0][0].x
+        val rightDot4X = portraitData[3][0].x
+        
+        // Left column (Dots 1, 2, 3) must have smaller X than Right column (Dots 4, 5, 6)
+        assertTrue("Left dot X ($leftDot1X) should be less than Right dot X ($rightDot4X)", leftDot1X < rightDot4X)
+    }
+
+    @Test
+    fun testPortraitModelPrediction() {
+        val keyboard = Keyboard()
+        val calibrate = Calibrate()
+        val portraitData = calibrate.getDefaultCalibratedData(isLandscape = false)
+
+        // Tap near Dot 1 (a) (e.g., Offset(165f, 480f))
+        val tapPoint = androidx.compose.ui.geometry.Offset(165f, 480f)
+        val rawOutput = keyboard.runModel(listOf(tapPoint), portraitData)
+        val brailleOutput = keyboard.processRawBraille(rawOutput, BrailleDictionary)
+
+        assertEquals("100000", rawOutput)
+        assertEquals("a", brailleOutput)
     }
 
     @Test

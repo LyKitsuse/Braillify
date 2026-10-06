@@ -67,33 +67,38 @@ class MockKeyboard {
                         val downEvent = awaitFirstDown()
                         val dict = BrailleDictionary
 
-                        // Give a tiny fraction of a second (100ms) for all other fingers in the chord to land
-                        // Adjust 100L if you want a wider or tighter time window
+                        val chordPointers = mutableMapOf<Long, Offset>()
+                        chordPointers[downEvent.id.value] = downEvent.position
+
                         withTimeoutOrNull(50L) {
                             while (true) {
-                                awaitPointerEvent()
+                                val event = awaitPointerEvent()
+                                for (change in event.changes) {
+                                    if (change.pressed) {
+                                        chordPointers[change.id.value] = change.position
+                                    }
+                                }
                             }
                         }
-                        // Grab EVERY finger touching the screen right now
-                        val currentPointers = currentEvent.changes.filter { it.pressed }
 
-                        // Save all finger positions at once
-                        for (pointer in currentPointers) {
-                            taps.add(pointer.position)
-                            Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
+                        taps.clear()
+                        taps.addAll(chordPointers.values)
+                        for (pointer in chordPointers.values) {
+                            Log.d("TAP", "Tap at: X=${pointer.x}, Y=${pointer.y}")
                         }
 
                         // Update UI text showing how many fingers touched
-                        tapLocation = "Recorded ${currentPointers.size} fingers at once!"
+                        tapLocation = "Recorded ${chordPointers.size} fingers at once!"
 
                         val cal = Calibrate()
-                        // Call runModel()
-                        val rawOutput: String = runModel(taps, cal.calibratedMain)
-                        val brailleOutput = processRawBraille(rawOutput, points)
+                        if (taps.isNotEmpty()) {
+                            // Call runModel()
+                            val rawOutput: String = runModel(taps, cal.calibratedMain)
+                            val brailleOutput = processRawBraille(rawOutput, points)
 
-                        Log.d("CONV", "Point -> $brailleOutput")
-                        tapEq = brailleOutput
-                        taps.clear()
+                            Log.d("CONV", "Point -> $brailleOutput")
+                            tapEq = brailleOutput
+                        }
                     }
                 },
             contentAlignment = Alignment.Center
@@ -150,12 +155,12 @@ class MockKeyboard {
         for(i in tapSet){
             set = ML_kNN.kNN(i, pointsL2D)
             when(set){
-                "a" -> cells[3] = true
-                "b" -> cells[4] = true
-                "c" -> cells[5] = true
-                "d" -> cells[0] = true
-                "e" -> cells[1] = true
-                "f" -> cells[2] = true
+                "a" -> cells[0] = true
+                "b" -> cells[1] = true
+                "c" -> cells[2] = true
+                "d" -> cells[3] = true
+                "e" -> cells[4] = true
+                "f" -> cells[5] = true
             }
         }
 

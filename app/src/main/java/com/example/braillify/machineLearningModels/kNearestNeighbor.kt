@@ -25,6 +25,7 @@ class kNearestNeighbor {
 
         // Flatten training_data and collect distances with their corresponding labels
         for ((index, dotGroup) in pointsRef.withIndex()) {
+            if (index >= labels.size) break
             val currentLabel = labels[index]
 
             for (refPoint in dotGroup) {
@@ -36,6 +37,8 @@ class kNearestNeighbor {
             }
         }
 
+        if (distances.isEmpty()) return "a"
+
         // distances.sort(key=lambda x: x[0])
         distances.sortBy { it.distance }
 
@@ -46,7 +49,7 @@ class kNearestNeighbor {
         val predictedLabel = kNearestLabels
             .groupingBy { it }
             .eachCount()
-            .maxByOrNull { it.value }?.key ?: "unknown"
+            .maxByOrNull { it.value }?.key ?: "a"
 
         return predictedLabel
     }

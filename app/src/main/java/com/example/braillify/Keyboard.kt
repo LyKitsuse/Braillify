@@ -275,43 +275,34 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                         val initialDown = awaitFirstDown()
                                         val dict = BrailleDictionary
 
-                                        var latestEvent: androidx.compose.ui.input.pointer.PointerEvent? = null
+                                        val chordPointers = mutableMapOf<Long, Offset>()
+                                        chordPointers[initialDown.id.value] = initialDown.position
 
                                         withTimeoutOrNull(50L) {
                                             while (true) {
-                                                latestEvent = awaitPointerEvent()
+                                                val event = awaitPointerEvent()
+                                                for (change in event.changes) {
+                                                    if (change.pressed) {
+                                                        chordPointers[change.id.value] = change.position
+                                                    }
+                                                }
                                             }
                                         }
 
-                                        val changes = latestEvent?.changes ?: listOf(initialDown)
-                                        val currentPointers = changes.filter { it.pressed }
-
                                         taps.clear()
-                                        for (pointer in currentPointers) {
-                                            taps.add(pointer.position)
-                                            Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
+                                        taps.addAll(chordPointers.values)
+                                        for (tap in taps) {
+                                            Log.d("TAP", "Tap at: X=${tap.x}, Y=${tap.y}")
                                         }
 
                                         vibratePhone()
 
-//                                        val sb = StringBuilder("### Input $testIncrement ###\n")
-//                                        for (tap in taps) {
-//                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
-//                                        }
-//
-//                                        printTapPos = sb.toString()
-//                                        testIncrement++
-//                                        Log.d("DataColl", printTapPos)
-
                                         val pointerStarts = mutableMapOf<Long, Offset>()
                                         val pointerEnds = mutableMapOf<Long, Offset>()
 
-                                        for (pointer in currentPointers) {
-                                            pointerStarts[pointer.id.value] = pointer.position
-                                            pointerEnds[pointer.id.value] = pointer.position
-                                        }
-                                        if (!pointerStarts.containsKey(initialDown.id.value)) {
-                                            pointerStarts[initialDown.id.value] = initialDown.position
+                                        for (id in chordPointers.keys) {
+                                            pointerStarts[id] = chordPointers[id]!!
+                                            pointerEnds[id] = chordPointers[id]!!
                                         }
 
                                         var maxFingers = pointerStarts.size
@@ -363,7 +354,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                     statusLabelSetter = { statusLabel = it },
                                                     printTapPosSetter = { printTapPos = it }
                                                 )
-                                            } else {
+                                            } else if (taps.isNotEmpty()) {
                                                 // If the Input is a dot point
                                                 val rawOutput = runModel(taps, cal.calibratedMain)
                                                 brailleOutput = processRawBraille(rawOutput, dict)

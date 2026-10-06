@@ -16,93 +16,92 @@ class Calibrate {
     fun getDefaultCalibratedData(isLandscape: Boolean = false): List<MutableList<Offset>> {
         return if (!isLandscape) {
             mutableListOf(
-                // Landscape default Dot 1 (a)
-                // Dot 4 (d)
+                // Portrait default Dot 1 (a) - Left Top
                 mutableListOf(
-                    Offset(170f, 1250f),
-                    Offset(195f, 1250f),
-                    Offset(195f, 1275f),
-                    Offset(170f, 1275f)
+                    Offset(165f, 480f),
+                    Offset(190f, 480f),
+                    Offset(190f, 505f),
+                    Offset(165f, 505f)
                 ),
-                // Dot 5 (e)
+                // Portrait default Dot 2 (b) - Left Middle
                 mutableListOf(
-                    Offset(380f, 1250f),
-                    Offset(405f, 1250f),
-                    Offset(405f, 1275f),
-                    Offset(380f, 1275f)
+                    Offset(165f, 736f),
+                    Offset(190f, 736f),
+                    Offset(190f, 761f),
+                    Offset(165f, 761f)
                 ),
-                // Dot 6 (f)
+                // Portrait default Dot 3 (c) - Left Bottom
                 mutableListOf(
-                    Offset(550f, 1250f),
-                    Offset(575f, 1250f),
-                    Offset(575f, 1275f),
-                    Offset(550f, 1275f)
+                    Offset(165f, 1000f),
+                    Offset(190f, 1000f),
+                    Offset(190f, 1025f),
+                    Offset(165f, 1025f)
                 ),
+                // Portrait default Dot 4 (d) - Right Top
                 mutableListOf(
-                    Offset(170f, 340f),
-                    Offset(195f, 340f),
-                    Offset(195f, 365f),
-                    Offset(170f, 365f)
+                    Offset(577f, 530f),
+                    Offset(602f, 530f),
+                    Offset(602f, 577f),
+                    Offset(577f, 555f)
                 ),
-                // Dot 2 (b)
+                // Portrait default Dot 5 (e) - Right Middle
                 mutableListOf(
-                    Offset(380f, 340f),
-                    Offset(405f, 340f),
-                    Offset(405f, 365f),
-                    Offset(380f, 365f)
+                    Offset(555f, 700f),
+                    Offset(580f, 700f),
+                    Offset(580f, 725f),
+                    Offset(555f, 725f)
                 ),
-                // Dot 3 (c)
+                // Portrait default Dot 6 (f) - Right Bottom
                 mutableListOf(
-                    Offset(550f, 340f),
-                    Offset(575f, 340f),
-                    Offset(575f, 365f),
-                    Offset(550f, 365f)
-                ),
+                    Offset(548f, 983f),
+                    Offset(573f, 983f),
+                    Offset(573f, 1008f),
+                    Offset(548f, 1008f)
+                )
             )
         } else {
             mutableListOf(
-                // Portrait default (Fallback)
-                // Dot 1 (a)
-                // Dot 4 (d)
-                mutableListOf(
-                    Offset(1250f, 170f),
-                    Offset(1275f, 170f),
-                    Offset(1275f, 195f),
-                    Offset(1250f, 195f)
-                ),
-                // Dot 5 (e)
-                mutableListOf(
-                    Offset(1250f, 380f),
-                    Offset(1275f, 380f),
-                    Offset(1275f, 405f),
-                    Offset(1250f, 405f)
-                ),
-                // Dot 6 (f)
-                mutableListOf(
-                    Offset(1250f, 550f),
-                    Offset(1275f, 550f),
-                    Offset(1275f, 575f),
-                    Offset(1250f, 575f)
-                ),
+                // Landscape default Dot 1 (a)
                 mutableListOf(
                     Offset(340f, 170f),
                     Offset(365f, 170f),
                     Offset(365f, 195f),
                     Offset(340f, 195f)
                 ),
-                // Dot 2 (b)
+                // Landscape default Dot 2 (b)
                 mutableListOf(
                     Offset(340f, 380f),
                     Offset(365f, 380f),
                     Offset(365f, 405f),
                     Offset(340f, 405f)
                 ),
-                // Dot 3 (c)
+                // Landscape default Dot 3 (c)
                 mutableListOf(
                     Offset(340f, 550f),
                     Offset(365f, 550f),
                     Offset(365f, 575f),
                     Offset(340f, 575f)
+                ),
+                // Landscape default Dot 4 (d)
+                mutableListOf(
+                    Offset(1250f, 170f),
+                    Offset(1275f, 170f),
+                    Offset(1275f, 195f),
+                    Offset(1250f, 195f)
+                ),
+                // Landscape default Dot 5 (e)
+                mutableListOf(
+                    Offset(1250f, 380f),
+                    Offset(1275f, 380f),
+                    Offset(1275f, 405f),
+                    Offset(1250f, 405f)
+                ),
+                // Landscape default Dot 6 (f)
+                mutableListOf(
+                    Offset(1250f, 550f),
+                    Offset(1275f, 550f),
+                    Offset(1275f, 575f),
+                    Offset(1250f, 575f)
                 )
             )
         }
@@ -150,6 +149,10 @@ class Calibrate {
                         groupList.add(Offset(x, y))
                     }
                     newList.add(groupList)
+                }
+                if (newList.any { it.isEmpty() }) {
+                    calibratedMain = getDefaultCalibratedData(isLandscape)
+                    return null
                 }
                 calibratedMain = newList
                 Log.d("Calibrate", "Successfully pulled calibrated data for landscape=$isLandscape")
