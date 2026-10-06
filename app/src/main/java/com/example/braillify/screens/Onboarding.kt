@@ -251,7 +251,7 @@ class Onboarding {
                 when (stepsAchieved) {
                     0 -> {
                         try {
-                            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             context.startActivity(intent)
@@ -261,7 +261,7 @@ class Onboarding {
                     }
                     1 -> {
                         try {
-                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             context.startActivity(intent)
