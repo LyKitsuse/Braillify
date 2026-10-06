@@ -190,6 +190,10 @@ class Calibrate {
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f),
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f)
         )
+        calibratedMain = mutableListOf(
+            mutableListOf(), mutableListOf(), mutableListOf(),
+            mutableListOf(), mutableListOf(), mutableListOf()
+        )
         Keyboard.isCalibrating = true
         Keyboard.calibrationStep = 0
     }
@@ -212,15 +216,20 @@ class Calibrate {
             mutableNew[dotIndex] = point
             newCalibration = mutableNew
 
-            if (dotIndex == 5) {
+            if (dotIndex == 0) {
                 calibratedMain = mutableListOf(
-                    mutableListOf(newCalibration[0]),
-                    mutableListOf(newCalibration[1]),
-                    mutableListOf(newCalibration[2]),
-                    mutableListOf(newCalibration[3]),
-                    mutableListOf(newCalibration[4]),
-                    mutableListOf(newCalibration[5])
+                    mutableListOf(point),
+                    mutableListOf(),
+                    mutableListOf(),
+                    mutableListOf(),
+                    mutableListOf(),
+                    mutableListOf()
                 )
+            } else {
+                if (calibratedMain.size > dotIndex) {
+                    calibratedMain[dotIndex].clear()
+                    calibratedMain[dotIndex].add(point)
+                }
             }
         }
     }

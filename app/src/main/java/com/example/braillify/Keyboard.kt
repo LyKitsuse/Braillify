@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -160,8 +161,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         initTts()
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val cal = Calibrate()
-        cal.pullCalibratedData(this, isLandscape)
+        if (!isCalibrating) {
+            val cal = Calibrate()
+            cal.pullCalibratedData(this, isLandscape)
+        }
         if (isCalibrating) {
             speakCalibrationStep()
         }
@@ -253,7 +256,11 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var brailleOutput by remember { mutableStateOf("") }
 
                 val cal = remember { Calibrate() }
-                cal.pullCalibratedData(this@Keyboard, isLandscape)
+                LaunchedEffect(isLandscape, isCalibrating) {
+                    if (!isCalibrating) {
+                        cal.pullCalibratedData(this@Keyboard, isLandscape)
+                    }
+                }
 
                 var testIncrement by remember { mutableStateOf(0) }
                 var printTapPos by remember { mutableStateOf("") }
@@ -355,6 +362,12 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 printTapPosSetter = { printTapPos = it }
                                             )
                                         } else {
+                                            taps.clear()
+                                            for (pos in pointerStarts.values) {
+                                                taps.add(pos)
+                                                Log.d("TAP_GESTURE", "Final gesture tap point: X=${pos.x}, Y=${pos.y}")
+                                            }
+
                                             // If Calibrating
                                             if (isCalibrating) {
                                                 calibrationProcess(
