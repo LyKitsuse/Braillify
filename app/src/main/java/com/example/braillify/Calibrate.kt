@@ -4,13 +4,19 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.ui.geometry.Offset
 import com.example.braillify.machineLearningModels.kNearestNeighbor
+import com.example.braillify.screens.ProfileManager
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 
 class Calibrate {
-    private fun getFileName(isLandscape: Boolean): String {
-        return if (isLandscape) "calibrated_data_landscape.json" else "calibrated_data_portrait.json"
+    private fun getFileName(context: Context, isLandscape: Boolean, profileId: String? = null): String {
+        val targetId = profileId ?: ProfileManager.getActiveProfileId(context)
+        val profile = ProfileManager.getProfileById(context, targetId)
+            ?: ProfileManager.getActiveProfile(context)
+        val fileName = if (isLandscape) profile.landscapeFileName else profile.portraitFileName
+        Log.d("Calibrate", "Resolved filename for profile $targetId (landscape=$isLandscape): $fileName")
+        return fileName
     }
 
     fun getDefaultCalibratedData(isLandscape: Boolean = false): List<MutableList<Offset>> {
@@ -102,7 +108,7 @@ class Calibrate {
                     Offset(340f, 550f),
                     Offset(365f, 550f),
                     Offset(365f, 575f),
-                    Offset(340f, 575f)
+                    Offset(340f, 550f)
                 )
             )
         }
@@ -121,18 +127,22 @@ class Calibrate {
         Offset(0f, 0f)
     )
 
-    fun pullCalibratedData(context: Context, isLandscape: Boolean = false): List<MutableList<Offset>>? {
+    fun pullCalibratedData(context: Context, isLandscape: Boolean = false, profileId: String? = null): List<MutableList<Offset>>? {
         try {
-            val fileName = getFileName(isLandscape)
+            val targetId = profileId ?: ProfileManager.getActiveProfileId(context)
+            val fileName = getFileName(context, isLandscape, targetId)
             var file = File(context.filesDir, fileName)
-            if (!file.exists() && !isLandscape) {
-                // Fallback to legacy calibrated_data.json for portrait
+            Log.d("Calibrate", "Pulling data for profileId=$targetId, file=${file.absolutePath}, exists=${file.exists()}")
+            if (!file.exists() && !isLandscape && targetId == ProfileManager.DEFAULT_PROFILE_ID) {
+                // Fallback to legacy calibrated_data.json only for portrait on default profile 1
                 val legacyFile = File(context.filesDir, "calibrated_data.json")
                 if (legacyFile.exists()) {
                     file = legacyFile
+                    Log.d("Calibrate", "Using legacy file: ${file.absolutePath}")
                 }
             }
             if (!file.exists()) {
+                Log.w("Calibrate", "File $fileName does not exist. Using default calibrated data.")
                 calibratedMain = getDefaultCalibratedData(isLandscape)
                 return null
             }
@@ -152,7 +162,7 @@ class Calibrate {
                     newList.add(groupList)
                 }
                 calibratedMain = newList
-                Log.d("Calibrate", "Successfully pulled calibrated data for landscape=$isLandscape")
+                Log.d("Calibrate", "Successfully pulled calibrated data from $fileName for profile=$targetId")
                 return newList
             }
         } catch (e: Exception) {
@@ -162,7 +172,7 @@ class Calibrate {
         return null
     }
 
-    fun saveCalibratedData(context: Context, data: List<List<Offset>>, isLandscape: Boolean = false) {
+    fun saveCalibratedData(context: Context, data: List<List<Offset>>, isLandscape: Boolean = false, profileId: String? = null) {
         try {
             val rootArray = JSONArray()
             for (dotGroup in data) {
@@ -176,16 +186,17 @@ class Calibrate {
                 }
                 rootArray.put(groupArray)
             }
-            val fileName = getFileName(isLandscape)
+            val targetId = profileId ?: ProfileManager.getActiveProfileId(context)
+            val fileName = getFileName(context, isLandscape, targetId)
             val file = File(context.filesDir, fileName)
             file.writeText(rootArray.toString())
-            Log.d("Calibrate", "Saved calibrated data for landscape=$isLandscape to ${file.absolutePath}")
+            Log.d("Calibrate", "Saved calibrated data for profile=$targetId, landscape=$isLandscape to ${file.absolutePath}")
         } catch (e: Exception) {
             Log.e("Calibrate", "Error saving calibrated data", e)
         }
     }
 
-    fun calibrateNew() {
+    fun calibrateNew(profileId: String? = null) {
         newCalibration = mutableListOf(
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f),
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f)
@@ -196,16 +207,19 @@ class Calibrate {
         )
         Keyboard.isCalibrating = true
         Keyboard.calibrationStep = 0
+        Keyboard.calibratingProfileId = profileId
     }
 
     fun exitCalibration(context: Context, isLandscape: Boolean = false) {
         Keyboard.isCalibrating = false
         Keyboard.calibrationStep = 0
+        val targetProfileId = Keyboard.calibratingProfileId
+        Keyboard.calibratingProfileId = null
         newCalibration = mutableListOf(
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f),
             Offset(0f, 0f), Offset(0f, 0f), Offset(0f, 0f)
         )
-        if (pullCalibratedData(context, isLandscape) == null) {
+        if (pullCalibratedData(context, isLandscape, targetProfileId) == null) {
             calibratedMain = getDefaultCalibratedData(isLandscape)
         }
     }

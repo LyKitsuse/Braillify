@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.example.braillify.machineLearningModels.kNearestNeighbor
 import com.example.braillify.machineLearningModels.randomForest
 import com.example.braillify.machineLearningModels.svm
+import com.example.braillify.screens.ProfileManager
 import com.example.braillify.ui.theme.BraillifyTheme
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -78,6 +79,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     private var isCapitalOnce: Boolean = false
     private var isNumeral: Boolean = false
 
+    private val keyboardCal = Calibrate()
+
     private val forest = randomForest()
     private val mL_kNN1 = kNearestNeighbor()
     private val mL_kNN2 = svm()
@@ -88,6 +91,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     companion object {
         var isCalibrating by mutableStateOf(false)
         var calibrationStep by mutableIntStateOf(0)
+        var calibratingProfileId by mutableStateOf<String?>(null)
 
         // Array of Words the TTS should Say during Calibration
         val calibrationPrompts = listOf(
@@ -162,8 +166,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         initTts()
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         if (!isCalibrating) {
-            val cal = Calibrate()
-            cal.pullCalibratedData(this, isLandscape)
+            val activeId = ProfileManager.getActiveProfileId(this)
+            keyboardCal.pullCalibratedData(this, isLandscape, activeId)
         }
         if (isCalibrating) {
             speakCalibrationStep()
@@ -176,8 +180,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         if (isCalibrating) {
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-            val cal = Calibrate()
-            cal.exitCalibration(this, isLandscape)
+            keyboardCal.exitCalibration(this, isLandscape)
         }
     }
 
@@ -185,8 +188,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         super.onDestroy()
         if (isCalibrating) {
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-            val cal = Calibrate()
-            cal.exitCalibration(this, isLandscape)
+            keyboardCal.exitCalibration(this, isLandscape)
         }
         tts?.stop()
         tts?.shutdown()
@@ -255,10 +257,11 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 var tapEq by remember { mutableStateOf("Tap Anywhere!") }
                 var brailleOutput by remember { mutableStateOf("") }
 
-                val cal = remember { Calibrate() }
-                LaunchedEffect(isLandscape, isCalibrating) {
+                val cal = keyboardCal
+                val activeProfileId = ProfileManager.getActiveProfileId(this@Keyboard)
+                LaunchedEffect(isLandscape, isCalibrating, activeProfileId) {
                     if (!isCalibrating) {
-                        cal.pullCalibratedData(this@Keyboard, isLandscape)
+                        cal.pullCalibratedData(this@Keyboard, isLandscape, activeProfileId)
                     }
                 }
 
@@ -471,9 +474,15 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                     statusLabelSetter("Calibration: ${calibrationPrompts[calibrationStep]}")
                 } else {
                     val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                    cal.saveCalibratedData(this@Keyboard, cal.calibratedMain, isLandscape)
+                    val targetProfileId = calibratingProfileId
+                    cal.saveCalibratedData(this@Keyboard, cal.calibratedMain, isLandscape, targetProfileId)
+                    if (targetProfileId != null) {
+                        ProfileManager.setActiveProfileId(this@Keyboard, targetProfileId)
+                    }
                     isCalibrating = false
                     calibrationStep = 0
+                    calibratingProfileId = null
+                    cal.pullCalibratedData(this@Keyboard, isLandscape, targetProfileId ?: ProfileManager.getActiveProfileId(this@Keyboard))
                     speakText("Calibration complete")
                     statusLabelSetter("Calibration Complete!")
                     printTapPosSetter("Calibration Complete!\nTap Anywhere to Type")
