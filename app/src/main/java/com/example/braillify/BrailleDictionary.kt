@@ -40,6 +40,7 @@ object BrailleDictionary {
         "011010" to "!",   // Dots 2, 3, 5
         "011001" to "?",   // Dots 2, 3, 6 (Also used for Open Quote in UEB)
         "001000" to "'",   // Dot 3
+        "001011" to "\"",  // Dots 3,5,6
         "001001" to "-",   // Dots 3, 6
         "110001" to "(",   // Dots 1, 2, 6
         "001110" to ")",   // Dots 3, 4, 5

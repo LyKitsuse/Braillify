@@ -10,10 +10,6 @@ import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
-import android.view.Window
-import android.view.WindowInsets
-import android.view.WindowInsetsController
-import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.EditorInfo
@@ -112,10 +108,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     }
 
     override fun onCreate() {
+        initTts()
         super.onCreate()
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-        initTts()
     }
 
     private fun initTts() {
@@ -142,7 +138,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         }
         tts?.setSpeechRate(speed)
         val params = Bundle().apply {
-            // Lower the volume (range is 0.0f to 1.0f)
+            // Lower the volume to 30% (range is 0.0f to 1.0f)
             putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, SettingsPrefs.getVoiceVolume(this@Keyboard))
         }
 
@@ -200,6 +196,9 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
             val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             keyboardCal.exitCalibration(this, isLandscape)
         }
+
+        isCapital = false
+        isNumeral = false
     }
 
     override fun onDestroy() {
