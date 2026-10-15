@@ -63,12 +63,14 @@ fun SettingsScreen(
     var showVoiceSpeed by remember { mutableStateOf(false) }
     var showVoiceVolume by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
+    var showSOS by remember { mutableStateOf(false) }
 
-    BackHandler(enabled = showVoiceSpeed || showVoiceVolume || showAbout) {
+    BackHandler(enabled = showVoiceSpeed || showVoiceVolume || showAbout || showSOS) {
         when {
             showVoiceSpeed  -> showVoiceSpeed = false
             showVoiceVolume -> showVoiceVolume = false
             showAbout       -> showAbout = false
+            showSOS         -> showSOS = false
         }
     }
 
@@ -82,7 +84,11 @@ fun SettingsScreen(
 
     var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
-    onSubScreenChanged(showVoiceSpeed || showVoiceVolume || showAbout)
+
+
+    onSubScreenChanged(showVoiceSpeed || showVoiceVolume || showAbout || showSOS)
+
+
 
     when {
         showVoiceSpeed -> VoiceSpeedScreen(
@@ -102,6 +108,7 @@ fun SettingsScreen(
             }
         )
         showAbout -> AboutBraillifyScreen(onBack = { showAbout = false })
+        showSOS   -> SOSSubScreen(onBack = { showSOS = false })
         else -> SettingsMain(
             onBack = onBack,
             voiceSpeed = voiceSpeed,
@@ -128,7 +135,8 @@ fun SettingsScreen(
             },
             onVoiceSpeed = { showVoiceSpeed = true },
             onVoiceVolume = { showVoiceVolume = true },
-            onAboutClick = { showAbout = true }
+            onAboutClick = { showAbout = true },
+            onSOSClick = { showSOS = true }
         )
     }
 }
@@ -148,7 +156,8 @@ private fun SettingsMain(
     onSequentialModeChanged: (Boolean) -> Unit,
     onVoiceSpeed: () -> Unit,
     onVoiceVolume: () -> Unit,
-    onAboutClick: () -> Unit
+    onAboutClick: () -> Unit,
+    onSOSClick: () -> Unit
 ) {
     val context = LocalContext.current
     var showExitDialog by remember { mutableStateOf(false) }
@@ -232,6 +241,16 @@ private fun SettingsMain(
                 Log.d("DEBUG", "Input Mode clicked, setting dialog true")
                 showInputModeDialog = true
             }
+        )
+
+        Spacer(Modifier.height(24.dp))
+        SectionTitle("Emergency")
+        Spacer(Modifier.height(8.dp))
+
+        SettingsRow(
+            title = "Safety & SOS",
+            subtitle = "Emergency contact and SOS gesture",
+            onClick = onSOSClick
         )
 
         Spacer(Modifier.height(24.dp))
