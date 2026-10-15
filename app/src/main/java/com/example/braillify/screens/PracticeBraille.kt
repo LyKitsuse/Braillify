@@ -53,20 +53,26 @@ import com.example.braillify.R
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
 private val Background = Color(0xFFF2F0F5)
-private val CardWhite = Color(0xFFFFFFFF)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
 @Composable
 fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
     var text by remember { mutableStateOf("") }
+    var showDictionary by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val context = LocalContext.current
 
     // Hide keyboard
+    // Hide keyboard
     BackHandler {
         hideKeyboard(context)
         onBack()
+    }
+
+    if (showDictionary) {
+        BrailleDictionaryScreen(onBack = { showDictionary = false })
+        return
     }
 
     Column(
@@ -142,7 +148,7 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
             iconRes = R.drawable.pb_braille_dictionary_24px,
             title = "Braille Dictionary",
             subtitle = "Browse and learn braille characters, numbers and punctuations.",
-            onClick = { Log.d("DEBUG", "Braille Dictionary tapped") }
+            onClick = { showDictionary = true }
         )
     }
 }

@@ -54,7 +54,6 @@ import com.example.braillify.Calibrate
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
 private val Background = Color(0xFFF2F0F5)
-private val CardWhite = Color(0xFFFFFFFF)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 private val cal = Calibrate()
