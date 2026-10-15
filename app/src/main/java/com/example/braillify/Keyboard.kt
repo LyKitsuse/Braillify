@@ -4,11 +4,16 @@ import android.content.Context
 import android.content.res.Configuration
 import android.inputmethodservice.InputMethodService
 import android.os.Build
+import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.View
+import android.view.Window
+import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.inputmethod.EditorInfo
@@ -36,7 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.hideFromAccessibility
@@ -44,11 +48,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.braillify.machineLearningModels.kNearestNeighbor
-import com.example.braillify.machineLearningModels.randomForest
-import com.example.braillify.machineLearningModels.svm
-import com.example.braillify.screens.ProfileManager
-import com.example.braillify.ui.theme.BraillifyTheme
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -60,10 +59,16 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.example.braillify.machineLearningModels.kNearestNeighbor
+import com.example.braillify.machineLearningModels.randomForest
+import com.example.braillify.machineLearningModels.svm
+import com.example.braillify.screens.ProfileManager
 import com.example.braillify.screens.SettingsPrefs
-import kotlinx.coroutines.withTimeoutOrNull
+import com.example.braillify.ui.theme.BraillifyTheme
 import java.util.Locale
 import kotlin.math.abs
+
+
 
 class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
@@ -127,9 +132,22 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         }
     }
 
+
     fun speakText(text: String) {
+        val speed: Float = when (SettingsPrefs.getVoiceSpeed(this@Keyboard)) {
+            "Slow" -> 0.5f
+            "Normal" -> 1f
+            "Fast" -> 1.25f
+            else -> 1.5f
+        }
+        tts?.setSpeechRate(speed)
+        val params = Bundle().apply {
+            // Lower the volume (range is 0.0f to 1.0f)
+            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, SettingsPrefs.getVoiceVolume(this@Keyboard))
+        }
+
         if (isTtsInitialized) {
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "KeyboardTTS")
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, params, "KeyboardTTS")
         }
     }
 
@@ -285,7 +303,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                         val initialDown = awaitFirstDown()
                                         val dict = BrailleDictionary
 
-                                        var latestEvent: androidx.compose.ui.input.pointer.PointerEvent? = null
+                                        var latestEvent: androidx.compose.ui.input.pointer.PointerEvent? =
+                                            null
 
                                         withTimeoutOrNull(50L) {
                                             while (true) {
@@ -299,7 +318,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                         taps.clear()
                                         for (pointer in currentPointers) {
                                             taps.add(pointer.position)
-                                            Log.d("TAP", "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}")
+                                            Log.d(
+                                                "TAP",
+                                                "Tap at: X=${pointer.position.x}, Y=${pointer.position.y}"
+                                            )
                                         }
 
                                         vibratePhone()
@@ -321,7 +343,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             pointerEnds[pointer.id.value] = pointer.position
                                         }
                                         if (!pointerStarts.containsKey(initialDown.id.value)) {
-                                            pointerStarts[initialDown.id.value] = initialDown.position
+                                            pointerStarts[initialDown.id.value] =
+                                                initialDown.position
                                         }
 
                                         var maxFingers = pointerStarts.size
@@ -334,7 +357,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             for (change in event.changes) {
                                                 val id = change.id.value
                                                 if (change.pressed) {
-                                                    if (!pointerStarts.containsKey(id)) pointerStarts[id] = change.position
+                                                    if (!pointerStarts.containsKey(id)) pointerStarts[id] =
+                                                        change.position
                                                     pointerEnds[id] = change.position
                                                 }
                                             }
@@ -352,7 +376,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             totalDy += (end.y - start.y)
                                         }
 
-                                        val isSwipe = abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
+                                        val isSwipe =
+                                            abs(totalDx) > swipeThreshold || abs(totalDy) > swipeThreshold
 
                                         // If Swipe, otherwise Tap
                                         if (isSwipe) {
@@ -368,7 +393,10 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                             taps.clear()
                                             for (pos in pointerStarts.values) {
                                                 taps.add(pos)
-                                                Log.d("TAP_GESTURE", "Final gesture tap point: X=${pos.x}, Y=${pos.y}")
+                                                Log.d(
+                                                    "TAP_GESTURE",
+                                                    "Final gesture tap point: X=${pos.x}, Y=${pos.y}"
+                                                )
                                             }
 
                                             // If Calibrating
@@ -386,11 +414,17 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
                                                     if (brailleOutput !in listOf(
-                                                            "Capital Sign", "Caps Lock", "Capital Off",
-                                                            "Letter Sign", "Numeral Sign"
+                                                            "Capital Sign",
+                                                            "Caps Lock",
+                                                            "Capital Off",
+                                                            "Letter Sign",
+                                                            "Numeral Sign"
                                                         )
                                                     ) {
-                                                        currentInputConnection?.commitText(brailleOutput, 1)
+                                                        currentInputConnection?.commitText(
+                                                            brailleOutput,
+                                                            1
+                                                        )
                                                     }
                                                     speakCharacter(brailleOutput)
                                                 }
