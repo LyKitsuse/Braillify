@@ -107,6 +107,20 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         )
     }
 
+    // Converts portrait taps (720x1600) into landscape space (1600x720) when the landscape preference is on and rotates 180 degrees around center
+    private fun mapTapsForLandscapePreference(raw: List<Offset>): List<Offset> {
+        val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        return if (isPortrait && SettingsPrefs.getLandscapeTyping(this@Keyboard)) {
+            raw.map { touch ->
+                val landscapeX = 1600f - touch.y
+                val landscapeY = touch.x
+                Offset(landscapeX, landscapeY)
+            }
+        } else {
+            raw.toList()
+        }
+    }
+
     override fun onCreate() {
         initTts()
         super.onCreate()
@@ -178,7 +192,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         initTts()
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard)
         if (!isCalibrating) {
             val activeId = ProfileManager.getActiveProfileId(this)
             keyboardCal.pullCalibratedData(this, isLandscape, activeId)
@@ -193,7 +207,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
         if (isCalibrating) {
-            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard)
             keyboardCal.exitCalibration(this, isLandscape)
         }
 
@@ -204,7 +218,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     override fun onDestroy() {
         super.onDestroy()
         if (isCalibrating) {
-            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard)
             keyboardCal.exitCalibration(this, isLandscape)
         }
         tts?.stop()
@@ -267,7 +281,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         composeView.setContent {
             BraillifyTheme {
                 val configuration = LocalConfiguration.current
-                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard)
                 var statusLabel by remember { mutableStateOf("Ready") }
                 var modeLabel by remember { mutableStateOf("Lowercase") }
                 val taps = remember { mutableStateListOf<Offset>() }
@@ -380,9 +394,17 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         // If Swipe, otherwise Tap
                                         if (isSwipe) {
+                                            var swipeDx = totalDx
+                                            var swipeDy = totalDy
+                                            val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                                            if (isPortrait && SettingsPrefs.getLandscapeTyping(this@Keyboard)) {
+                                                swipeDx = -totalDy
+                                                swipeDy = totalDx
+                                            }
+
                                             swiping(
-                                                totalDx = totalDx,
-                                                totalDy = totalDy,
+                                                totalDx = swipeDx,
+                                                totalDy = swipeDy,
                                                 maxFingers = maxFingers,
                                                 cal = cal,
                                                 statusLabelSetter = { statusLabel = it },
@@ -398,17 +420,19 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 )
                                             }
 
+                                            val modelTaps = mapTapsForLandscapePreference(taps)
+
                                             // If Calibrating
                                             if (isCalibrating) {
                                                 calibrationProcess(
-                                                    taps = taps,
+                                                    taps = modelTaps,
                                                     cal = cal,
                                                     statusLabelSetter = { statusLabel = it },
                                                     printTapPosSetter = { printTapPos = it }
                                                 )
                                             } else {
                                                 // If the Input is a dot point
-                                                val rawOutput = runModel(taps, cal.calibratedMain)
+                                                val rawOutput = runModel(modelTaps, cal.calibratedMain)
                                                 brailleOutput = processRawBraille(rawOutput, dict)
 
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
@@ -418,7 +442,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                             "Capital Off",
                                                             "Letter Sign",
                                                             "Numeral Sign"
-                                                        )
+                                                        ) && !brailleOutput.startsWith("dots ")
                                                     ) {
                                                         currentInputConnection?.commitText(
                                                             brailleOutput,
@@ -506,7 +530,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                     speakCalibrationStep()
                     statusLabelSetter("Calibration: ${calibrationPrompts[calibrationStep]}")
                 } else {
-                    val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                    val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard)
                     val targetProfileId = calibratingProfileId
                     cal.saveCalibratedData(this@Keyboard, cal.calibratedMain, isLandscape, targetProfileId)
                     if (targetProfileId != null) {
@@ -525,7 +549,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     }
     fun swiping(totalDx: Float,totalDy: Float,maxFingers: Int,cal: Calibrate,statusLabelSetter: (String) -> Unit,printTapPosSetter: (String) -> Unit){
         if (isCalibrating) {
-            cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE)
+            cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard))
             speakText("Calibration cancelled")
             statusLabelSetter("Ready")
             printTapPosSetter("")
