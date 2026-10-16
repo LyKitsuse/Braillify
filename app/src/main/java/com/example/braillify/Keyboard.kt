@@ -394,9 +394,17 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         // If Swipe, otherwise Tap
                                         if (isSwipe) {
+                                            var swipeDx = totalDx
+                                            var swipeDy = totalDy
+                                            val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+                                            if (isPortrait && SettingsPrefs.getLandscapeTyping(this@Keyboard)) {
+                                                swipeDx = -totalDy
+                                                swipeDy = totalDx
+                                            }
+
                                             swiping(
-                                                totalDx = totalDx,
-                                                totalDy = totalDy,
+                                                totalDx = swipeDx,
+                                                totalDy = swipeDy,
                                                 maxFingers = maxFingers,
                                                 cal = cal,
                                                 statusLabelSetter = { statusLabel = it },
@@ -434,7 +442,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                             "Capital Off",
                                                             "Letter Sign",
                                                             "Numeral Sign"
-                                                        )
+                                                        ) && !brailleOutput.startsWith("dots ")
                                                     ) {
                                                         currentInputConnection?.commitText(
                                                             brailleOutput,
