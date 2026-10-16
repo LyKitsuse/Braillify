@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.util.Log
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.activity.compose.BackHandler
@@ -33,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -148,7 +148,9 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = DictTextDark, fontSize = 28.sp)
+                Text(text = "‹", color = DictTextDark, fontSize = 28.sp, modifier = Modifier.semantics {
+                    contentDescription = "Back Button"
+                })
             }
             Spacer(Modifier.size(8.dp))
             Text(
@@ -192,7 +194,8 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
                 text = title,
                 color = DictTextDark,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics { hideFromAccessibility() }
             )
             Text(
                 text = "${items.size} characters",
@@ -216,7 +219,7 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
                 BrailleEntryCard(
                     char = entry.char,
                     dots = entry.dots,
-                    onClick = { selectedEntry = entry }
+                    onClick = { selectedEntry = entry },
                 )
             }
         }
@@ -248,6 +251,24 @@ private fun BrailleEntryCard(
     dots: Set<Int>,
     onClick: () -> Unit
 ) {
+    val sortedDots = dots.sorted().joinToString(", ")
+    val dotLabel = if (dots.size == 1) "dot" else "dots"
+    val charName = when (char) {
+        "." -> "Period"
+        "," -> "Comma"
+        "?" -> "Question mark"
+        "!" -> "Exclamation mark"
+        ";" -> "Semicolon"
+        ":" -> "Colon"
+        "-" -> "Hyphen"
+        "'" -> "Apostrophe"
+        "(" -> "Open parenthesis"
+        ")" -> "Close parenthesis"
+        "\"" -> "Quote"
+        else -> char
+    }
+    val accessibilityDescription = "$charName, $dotLabel $sortedDots"
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -266,7 +287,10 @@ private fun BrailleEntryCard(
                 text = char,
                 color = DictTextDark,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.semantics {
+                    contentDescription = accessibilityDescription
+                }
             )
             Spacer(Modifier.height(8.dp))
             BrailleCell(activeDots = dots)
