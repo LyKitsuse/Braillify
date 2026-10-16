@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -92,7 +93,7 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
-                modifier = Modifier.focusRequester(focusRequester)
+                modifier = Modifier.focusRequester(focusRequester).semantics { hideFromAccessibility() }
             )
         }
 
@@ -109,7 +110,9 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = TextDark, fontSize = 28.sp)
+                Text(text = "‹", color = TextDark, fontSize = 28.sp, modifier = Modifier.semantics {
+                    contentDescription = "Back Button"
+                })
             }
 
             Spacer(Modifier.weight(1f))

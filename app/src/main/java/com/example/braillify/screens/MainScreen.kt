@@ -101,7 +101,7 @@ class MainScreen {
                     OutlinedTextField(
                         value = text,
                         onValueChange = { text = it },
-                        modifier = Modifier.focusRequester(focusRequester)
+                        modifier = Modifier.focusRequester(focusRequester).semantics { hideFromAccessibility() }
                     )
                 }
                 when {
@@ -181,7 +181,7 @@ class MainScreen {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    modifier = Modifier.focusRequester(focusRequester)
+                    modifier = Modifier.focusRequester(focusRequester).semantics { hideFromAccessibility() }
                 )
             }
 

@@ -90,10 +90,9 @@ object ProfileManager {
             }
             jsonArray.put(obj)
         }
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_PROFILES_JSON, jsonArray.toString())
-            .commit()
+        val editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+        editor.putString(KEY_PROFILES_JSON, jsonArray.toString())
+        editor.commit()
     }
 
     fun getActiveProfileId(context: Context): String {
@@ -102,10 +101,9 @@ object ProfileManager {
     }
 
     fun setActiveProfileId(context: Context, profileId: String) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putString(KEY_ACTIVE_PROFILE_ID, profileId)
-            .commit()
+        val editor = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+        editor.putString(KEY_ACTIVE_PROFILE_ID, profileId)
+        editor.commit()
         Log.d("ProfileManager", "Active profile set to: $profileId")
     }
 

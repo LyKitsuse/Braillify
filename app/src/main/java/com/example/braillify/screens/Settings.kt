@@ -40,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -148,11 +150,9 @@ private fun SettingsMain(
     voiceVolume: Float,
     hapticOn: Boolean,
     landscapeTyping: Boolean,
-    latencyDelay: Int,
     sequentialMode: Boolean,
     onHapticChanged: (Boolean) -> Unit,
     onLandscapeTypingChanged: (Boolean) -> Unit,
-    onLatencyDelayChanged: (Int) -> Unit,
     onSequentialModeChanged: (Boolean) -> Unit,
     onVoiceSpeed: () -> Unit,
     onVoiceVolume: () -> Unit,
@@ -183,7 +183,9 @@ private fun SettingsMain(
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = TextDark, fontSize = 28.sp)
+                Text(text = "‹", color = TextDark, fontSize = 28.sp, modifier = Modifier.semantics {
+                    contentDescription = "Back Button"
+                })
             }
             Spacer(Modifier.size(8.dp))
             Text(
@@ -223,16 +225,16 @@ private fun SettingsMain(
 
         Spacer(Modifier.height(10.dp))
 
-        SliderRow(
-            title = "Latency Delay",
-            subtitle = "${latencyDelay}ms",
-            value = latencyDelay.toFloat(),
-            valueRange = 0f..180f,
-            steps = 179,
-            onValueChange = { onLatencyDelayChanged(it.toInt()) }
-        )
-
-        Spacer(Modifier.height(10.dp))
+//        SliderRow(
+//            title = "Latency Delay",
+//            subtitle = "${latencyDelay}ms",
+//            value = latencyDelay.toFloat(),
+//            valueRange = 0f..180f,
+//            steps = 179,
+//            onValueChange = { onLatencyDelayChanged(it.toInt()) }
+//        )
+//
+//        Spacer(Modifier.height(10.dp))
 
         SettingsRow(
             title = "Input Mode",
