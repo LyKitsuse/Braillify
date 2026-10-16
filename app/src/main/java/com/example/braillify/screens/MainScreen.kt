@@ -50,6 +50,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
@@ -70,6 +76,8 @@ class MainScreen {
         var showPractice by remember { mutableStateOf(false) }
         var showProfile by remember { mutableStateOf(false) }
         var settingsSubOpen by remember { mutableStateOf(false) }
+        val context = LocalContext.current
+        var notesCount by remember { mutableStateOf(notesCount(context)) }
 
         BackHandler {
             when {
@@ -111,8 +119,7 @@ class MainScreen {
 
                     showNotes -> NotesScreen(
                         onBack = { showNotes = false },
-                        onAddNote = { Log.d("DEBUG", "Add Note") },
-                        onNoteClick = { Log.d("DEBUG", "Opened ${it.title}") }
+                        onNotesChanged = { notesCount = notesCount(context) }
                     )
 
                     showProfile -> ProfileScreen(
@@ -121,6 +128,7 @@ class MainScreen {
 
                     //NAVBAR CONTENT
                     selectedTab == NavTab.HOME -> HomeContent(
+                        notesCount = notesCount,
                         onNotesClick = { showNotes = true },
                         onPracticeClick = { showPractice = true },
                         onProfileClick = { showProfile = true }
@@ -150,6 +158,7 @@ class MainScreen {
 
     @Composable
     fun HomeContent(
+        notesCount: Int = 0,
         onPracticeClick: () -> Unit = {},
         onNotesClick: () -> Unit = {},
         onProfileClick: () -> Unit = {}
@@ -186,7 +195,17 @@ class MainScreen {
             }
 
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics(mergeDescendants = true) {
+                        contentDescription = "Tap to Start. Open the Braille Keyboard and start typing."
+                        role = Role.Button
+                    }
+                    .clickable {
+                        Log.d("DEBUG", "Tap to Start tapped")
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
+                    },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = CardWhite),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -199,10 +218,11 @@ class MainScreen {
                 ) {
                     Image(
                         painter = painterResource(R.drawable.braillify_logo),
-                        contentDescription = "Braillify Logo",
+                        contentDescription = null,
                         modifier = Modifier
                             .size(64.dp)
                             .background(PurpleLight, RoundedCornerShape(16.dp))
+                            .semantics { hideFromAccessibility() }
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
@@ -218,7 +238,6 @@ class MainScreen {
                         color = TextGray,
                         fontSize = 13.sp
                     )
-                    Spacer(Modifier.height(16.dp))
 
                     Spacer(Modifier.height(16.dp))
                     Button(
@@ -259,7 +278,7 @@ class MainScreen {
                 FeatureCard(
                     modifier = Modifier.weight(1f),
                     title = "Notes",
-                    subtitle = "Saved Notes: 99",
+                    subtitle = "Saved Notes: $notesCount",
                     iconRes = R.drawable.ms_notes_24px,
                     onClick = onNotesClick
                 )

@@ -132,7 +132,13 @@ fun VoiceSpeedScreen(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Balanced speed for clear and comfortable listening.",
+                    text = when (selected) {
+                        "Slow"      -> "A slower, relaxed pace for careful listening."
+                        "Normal"    -> "Balanced speed for clear and comfortable listening."
+                        "Fast"      -> "A quicker pace for faster reading."
+                        "Very Fast" -> "Maximum speed for experienced users."
+                        else        -> "Balanced speed for clear and comfortable listening."
+                    },
                     color = TextGray,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center
