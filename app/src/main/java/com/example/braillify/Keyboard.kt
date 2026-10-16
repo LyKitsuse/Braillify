@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -63,8 +64,7 @@ import com.example.braillify.screens.SettingsPrefs
 import com.example.braillify.ui.theme.BraillifyTheme
 import java.util.Locale
 import kotlin.math.abs
-
-
+import android.view.WindowManager
 
 class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
@@ -110,9 +110,16 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     // Converts portrait taps (720x1600) into landscape space (1600x720) when the landscape preference is on and rotates 180 degrees around center
     private fun mapTapsForLandscapePreference(raw: List<Offset>): List<Offset> {
         val isPortrait = resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+        val height = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowManager = getSystemService(WindowManager::class.java)
+            windowManager?.currentWindowMetrics?.bounds?.height()?.toFloat()
+                ?: resources.displayMetrics.heightPixels.toFloat()
+        } else {
+            resources.displayMetrics.heightPixels.toFloat()
+        }
         return if (isPortrait && SettingsPrefs.getLandscapeTyping(this@Keyboard)) {
             raw.map { touch ->
-                val landscapeX = 1600f - touch.y
+                val landscapeX = height - touch.y
                 val landscapeY = touch.x
                 Offset(landscapeX, landscapeY)
             }
