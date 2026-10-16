@@ -54,7 +54,7 @@ private val Background = Color(0xFFF2F0F5)
 private val RowBackground = Color(0xFFEDEBF2)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
-
+    
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit = {},
