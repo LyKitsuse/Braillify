@@ -81,7 +81,6 @@ fun SettingsScreen(
     var voiceVolume by remember { mutableFloatStateOf(SettingsPrefs.getVoiceVolume(context)) }
 
     var landscapeTyping by remember { mutableStateOf(SettingsPrefs.getLandscapeTyping(context)) }
-    var latencyDelay by remember { mutableStateOf(SettingsPrefs.getLatencyDelay(context)) }
     var sequentialMode by remember { mutableStateOf(SettingsPrefs.getSequentialMode(context)) }
 
     var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
@@ -117,7 +116,6 @@ fun SettingsScreen(
             voiceVolume = voiceVolume,
             hapticOn = hapticOn,
             landscapeTyping = landscapeTyping,
-            latencyDelay = latencyDelay,
             sequentialMode = sequentialMode,
             onHapticChanged = {
                 hapticOn = it
@@ -126,10 +124,6 @@ fun SettingsScreen(
             onLandscapeTypingChanged = {
                 landscapeTyping = it
                 SettingsPrefs.setLandscapeTyping(context, it)
-            },
-            onLatencyDelayChanged = {
-                latencyDelay = it
-                SettingsPrefs.setLatencyDelay(context, it)
             },
             onSequentialModeChanged = {
                 sequentialMode = it
