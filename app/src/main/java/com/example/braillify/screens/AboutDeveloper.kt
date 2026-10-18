@@ -114,7 +114,7 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                     )
                     Spacer(Modifier.height(6.dp))
                     Text(
-                        text = "Meet the team behind Braillify. We are dedicated to creating an accessible, intuitive, and reliable tool that helps make digital Braille learning easier for everyone.",
+                        text = "Meet the team behind Braillify. We are dedicated to creating an accessible, intuitive, and reliable tool that helps make digital Braille easier for everyone.",
                         color = TextGray,
                         fontSize = 12.sp,
                         lineHeight = 16.sp
