@@ -62,6 +62,7 @@ import com.example.braillify.machineLearningModels.svm
 import com.example.braillify.screens.ProfileManager
 import com.example.braillify.screens.SettingsPrefs
 import com.example.braillify.ui.theme.BraillifyTheme
+import com.example.braillify.SequentialMode
 import java.util.Locale
 import kotlin.math.abs
 import android.view.WindowManager
@@ -76,9 +77,9 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     override val viewModelStore: ViewModelStore get() = mViewModelStore
     override val savedStateRegistry: SavedStateRegistry get() = savedStateRegistryController.savedStateRegistry
 
-    private var isCapital: Boolean = false
-    private var isCapitalOnce: Boolean = false
-    private var isNumeral: Boolean = false
+    var isCapital: Boolean = false
+    var isCapitalOnce: Boolean = false
+    var isNumeral: Boolean = false
 
     private val keyboardCal = Calibrate()
 
@@ -88,6 +89,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
     private var tts: TextToSpeech? = null
     private var isTtsInitialized = false
+    val seq = SequentialMode()
 
     companion object {
         var isCalibrating by mutableStateOf(false)
@@ -346,15 +348,6 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
 
                                         vibratePhone()
 
-//                                        val sb = StringBuilder("### Input $testIncrement ###\n")
-//                                        for (tap in taps) {
-//                                            sb.append("TouchPoint at: X=${tap.x.toInt()}, Y=${tap.y.toInt()}\n")
-//                                        }
-//
-//                                        printTapPos = sb.toString()
-//                                        testIncrement++
-//                                        Log.d("DataColl", printTapPos)
-
                                         val pointerStarts = mutableMapOf<Long, Offset>()
                                         val pointerEnds = mutableMapOf<Long, Offset>()
 
@@ -415,7 +408,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 maxFingers = maxFingers,
                                                 cal = cal,
                                                 statusLabelSetter = { statusLabel = it },
-                                                printTapPosSetter = { printTapPos = it }
+                                                printTapPosSetter = { printTapPos = it },
+                                                onBrailleOutputChanged = { brailleOutput = it }
                                             )
                                         } else {
                                             taps.clear()
@@ -437,7 +431,20 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                     statusLabelSetter = { statusLabel = it },
                                                     printTapPosSetter = { printTapPos = it }
                                                 )
-                                            } else {
+                                            }
+                                            // Sequential
+                                            else if (SettingsPrefs.getSequentialMode(this@Keyboard)) {
+                                                seq.sequentialInput(
+                                                    taps = modelTaps,
+                                                    calibratedMain = cal.calibratedMain,
+                                                    dict = dict,
+                                                    keyboard = this@Keyboard,
+                                                    onBrailleOutputChanged = { brailleOutput = it },
+                                                    onStatusLabelChanged = { statusLabel = it }
+                                                )
+                                            }
+                                            // Simultaneous
+                                            else {
                                                 // If the Input is a dot point
                                                 val rawOutput = runModel(modelTaps, cal.calibratedMain)
                                                 brailleOutput = processRawBraille(rawOutput, dict)
@@ -554,7 +561,15 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
             }
         }
     }
-    fun swiping(totalDx: Float,totalDy: Float,maxFingers: Int,cal: Calibrate,statusLabelSetter: (String) -> Unit,printTapPosSetter: (String) -> Unit){
+    fun swiping(
+        totalDx: Float,
+        totalDy: Float,
+        maxFingers: Int,
+        cal: Calibrate,
+        statusLabelSetter: (String) -> Unit,
+        printTapPosSetter: (String) -> Unit,
+        onBrailleOutputChanged: (String) -> Unit = {}
+    ) {
         if (isCalibrating) {
             cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard))
             speakText("Calibration cancelled")
@@ -566,9 +581,31 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         } else if (abs(totalDx) > abs(totalDy)) {
             if (totalDx > 0) {
                 if (maxFingers == 1) {
-                    currentInputConnection?.commitText(" ", 1)
-                    statusLabelSetter("Space")
-                    speakText("Space")
+                    if (SettingsPrefs.getSequentialMode(this@Keyboard) && seq.hasInput()) {
+                        val rawPattern = seq.getRawBraillePattern()
+                        val output = processRawBraille(rawPattern, BrailleDictionary)
+                        seq.clear()
+                        onBrailleOutputChanged("")
+
+                        if (output.isNotEmpty() && output != "Null") {
+                            if (output !in listOf(
+                                    "Capital Sign",
+                                    "Caps Lock",
+                                    "Capital Off",
+                                    "Letter Sign",
+                                    "Numeral Sign"
+                                ) && !output.startsWith("dots ")
+                            ) {
+                                currentInputConnection?.commitText(output, 1)
+                            }
+                            speakCharacter(output)
+                        }
+                        statusLabelSetter("Typed: $output")
+                    } else {
+                        currentInputConnection?.commitText(" ", 1)
+                        statusLabelSetter("Space")
+                        speakText("Space")
+                    }
                 } else if (maxFingers == 2) {
                     currentInputConnection?.commitText("\n", 1)
                     statusLabelSetter("New Line")
@@ -576,9 +613,16 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                 }
             } else {
                 if (maxFingers == 1) {
-                    currentInputConnection?.deleteSurroundingText(1, 0)
-                    statusLabelSetter("Delete")
-                    speakText("Delete")
+                    if (SettingsPrefs.getSequentialMode(this@Keyboard) && seq.hasInput()) {
+                        seq.clear()
+                        onBrailleOutputChanged("")
+                        statusLabelSetter("Cleared")
+                        speakText("Cleared")
+                    } else {
+                        currentInputConnection?.deleteSurroundingText(1, 0)
+                        statusLabelSetter("Delete")
+                        speakText("Delete")
+                    }
                 } else if (maxFingers == 2) {
                     deleteWordBackward()
                     statusLabelSetter("Delete Word")

@@ -47,15 +47,6 @@ object SettingsPrefs {
             .edit().putBoolean(KEY_LANDSCAPE_TYPING, value).apply()
     }
 
-    fun getLatencyDelay(context: Context): Int =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getInt(KEY_LATENCY_DELAY, 0)
-
-    fun setLatencyDelay(context: Context, value: Int) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putInt(KEY_LATENCY_DELAY, value).apply()
-    }
-
     fun getSequentialMode(context: Context): Boolean =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getBoolean(KEY_SEQUENTIAL_MODE, false)
