@@ -85,11 +85,7 @@ fun SettingsScreen(
 
     var hapticOn by remember { mutableStateOf(SettingsPrefs.getHapticOn(context)) }
 
-
-
     onSubScreenChanged(showVoiceSpeed || showVoiceVolume || showAbout || showSOS)
-
-
 
     when {
         showVoiceSpeed -> VoiceSpeedScreen(
@@ -218,17 +214,6 @@ private fun SettingsMain(
         )
 
         Spacer(Modifier.height(10.dp))
-
-//        SliderRow(
-//            title = "Latency Delay",
-//            subtitle = "${latencyDelay}ms",
-//            value = latencyDelay.toFloat(),
-//            valueRange = 0f..180f,
-//            steps = 179,
-//            onValueChange = { onLatencyDelayChanged(it.toInt()) }
-//        )
-//
-//        Spacer(Modifier.height(10.dp))
 
         SettingsRow(
             title = "Input Mode",

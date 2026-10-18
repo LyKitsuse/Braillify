@@ -8,8 +8,8 @@ object SettingsPrefs {
     private const val KEY_VOICE_VOLUME = "voice_volume"
     private const val KEY_HAPTIC = "haptic_on"
     private const val KEY_LANDSCAPE_TYPING = "landscape_typing"
-    private const val KEY_LATENCY_DELAY = "latency_delay"
     private const val KEY_SEQUENTIAL_MODE = "sequential_mode"
+    private const val KEY_EMERGENCY_NUMBER = "emergency_number"
 
     fun getVoiceSpeed(context: Context): String =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -22,7 +22,7 @@ object SettingsPrefs {
 
     fun getVoiceVolume(context: Context): Float =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getFloat(KEY_VOICE_VOLUME, 0.67f)
+            .getFloat(KEY_VOICE_VOLUME, 1.0f)
 
     fun setVoiceVolume(context: Context, value: Float) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -47,15 +47,6 @@ object SettingsPrefs {
             .edit().putBoolean(KEY_LANDSCAPE_TYPING, value).apply()
     }
 
-    fun getLatencyDelay(context: Context): Int =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getInt(KEY_LATENCY_DELAY, 0)
-
-    fun setLatencyDelay(context: Context, value: Int) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit().putInt(KEY_LATENCY_DELAY, value).apply()
-    }
-
     fun getSequentialMode(context: Context): Boolean =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getBoolean(KEY_SEQUENTIAL_MODE, false)
@@ -63,5 +54,14 @@ object SettingsPrefs {
     fun setSequentialMode(context: Context, value: Boolean) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putBoolean(KEY_SEQUENTIAL_MODE, value).apply()
+    }
+
+    fun getEmergencyNumber(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_EMERGENCY_NUMBER, "") ?: ""
+
+    fun setEmergencyNumber(context: Context, value: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_EMERGENCY_NUMBER, value).apply()
     }
 }

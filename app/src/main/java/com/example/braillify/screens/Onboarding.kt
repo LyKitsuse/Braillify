@@ -1,34 +1,44 @@
 package com.example.braillify.screens
 
-import android.R.attr.accessibilityHeading
-import android.content.Context
-import android.view.inputmethod.InputMethodManager
+import android.content.Intent
+import android.provider.Settings
 import android.util.Log
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -37,75 +47,67 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
-import android.content.Intent
-import android.provider.Settings
+import com.example.braillify.Keyboard
+import com.example.braillify.R
+
+private val Purple = Color(0xFF5B3FE4)
+private val PurpleLight = Color(0xFFE8E3FB)
+private val Background = Color(0xFFF2F0F5)
+private val ACardWhite = Color(0xFFFFFFFF)
+private val TextDark = Color(0xFF1A1A1A)
+private val TextGray = Color(0xFF8A8A8A)
 
 class Onboarding {
-    val cardTextPadding = PaddingValues(
-        top = 24.dp,
-        start = 24.dp,
-        end = 24.dp,
-        bottom = 0.dp
-    )
-    private val subText: Color = Color(0xff8d8f84)
-    private val cardBackground: Color = Color(0xfff2efeb)
-
-    val subTextFont = 13.sp
-    val mainTextFont = 16.sp
-
     @Preview(showBackground = true)
     @Composable
     fun OnboardingProcess(onFinished: () -> Unit = {}) {
-        var stepsAchieved by remember { mutableStateOf(0) }
-        var warningDesc by remember { mutableStateOf("") }
+        var currentStep by remember { mutableStateOf(0) }
         var isClickedYet by remember { mutableStateOf(false) }
-        val context = LocalContext.current
+        var warningDesc by remember { mutableStateOf("") }
 
-        val messageInstruction: String
-        val messageDescription: String
-        val interactableButton: String
+        val context = LocalContext.current
+        val keyboardController = LocalSoftwareKeyboardController.current
 
         var text by remember { mutableStateOf("") }
         val focusRequester = remember { FocusRequester() }
+        var wasCalibrating by remember { mutableStateOf(false) }
 
-        LaunchedEffect(stepsAchieved) {
+        var showEmergencyScreen by remember { mutableStateOf(false) }
+
+        LaunchedEffect(currentStep) {
             isClickedYet = false
             warningDesc = ""
         }
 
-        when (stepsAchieved) {
-            0 -> {
-                messageInstruction = "Step 1: Enable Talkback Shortcut"
-                messageDescription = "TalkBack touch gestures can interfere with multi-finger Braille typing. Enabling the TalkBack Shortcut lets you quickly toggle TalkBack off while typing and turn it back on when you're done."
-                interactableButton = "Enable Service"
-            }
-            1 -> {
-                messageInstruction = "Step 2: Enable Braillify Keyboard"
-                messageDescription = "Enable Braillify in your keyboard settings to start typing in Braille."
-                interactableButton = "Enable Braillify in Settings"
-            }
-            else -> {
-                messageInstruction = "Step 3: Calibrate Your Touchpoints"
-                messageDescription = "Tap six points on the screen to align the Braille keys with where your fingers naturally rest."
-                interactableButton = "Start Calibration"
+        LaunchedEffect(Keyboard.isCalibrating) {
+            if (Keyboard.isCalibrating) {
+                wasCalibrating = true
+            } else if (wasCalibrating) {
+                if (currentStep == 3) currentStep = 4
             }
         }
 
-        Log.d("DEBUG", "Entered Onboarding, step: $stepsAchieved")
+        // Disable parent back handler when Emergency Screen is open
+        BackHandler(enabled = currentStep > 0 && !showEmergencyScreen) {
+            currentStep--
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(Background)
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            // Hidden TextBox for pulling up the keyboard from navbar or anywhere
+            // Hidden TextBox
             Box(
                 modifier = Modifier
                     .size(1.dp)
@@ -118,236 +120,473 @@ class Onboarding {
                     modifier = Modifier.focusRequester(focusRequester)
                 )
             }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            ) {
-                welcomeMessage()
-                infoCard(messageInstruction, messageDescription)
-                buttonInteract(
-                    buttDesc = interactableButton,
-                    stepsAchieved = stepsAchieved,
-                    context = context,
-                    focusRequester = focusRequester
-                ) {
-                    isClickedYet = true
-                }
-                continueInteract(
-                    currentWarningDesc = warningDesc,
-                    stepsAchieved = stepsAchieved,
-                    isClickedYet = isClickedYet,
-                    onShowWarning = { warningDesc = it }
-                ) {
-                    Log.d("DEBUG", "Clicked Continue, step: $stepsAchieved")
-                    if (stepsAchieved < 2) {
-                        stepsAchieved++
-                    } else {
-                        onFinished()
-                    }
-                }
-            }
-        }
-    }
 
-    @Composable
-    fun welcomeMessage() {
-        Column(
-            Modifier
-                .padding(cardTextPadding)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Braillify",
-                fontWeight = FontWeight.Bold,
-                color = Color.Blue,
-                fontSize = 28.sp,
-                modifier = Modifier
-                    .padding(bottom = 24.dp)
-            )
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(
-                        RoundedCornerShape(20.dp)
+            if (showEmergencyScreen) {
+                // RENDER EMERGENCY SCREEN AS A FULL OVERLAY
+                Box(modifier = Modifier.fillMaxSize()) {
+                    EmergencyContactScreen(
+                        onBack = {
+                            showEmergencyScreen = false
+                            // Check if it is saved
+                            val newSavedNumber = SettingsPrefs.getEmergencyNumber(context)
+                            if (newSavedNumber.isNotEmpty()) {
+                                onFinished() // Trigger finish
+                            }
+                        }
                     )
-                    .background(cardBackground)
-            ) {
-                Text(
-                    text = "Welcome to Braillify",
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = mainTextFont,
+                }
+            } else if (currentStep == 0) {
+                WelcomeScreen(onStart = { currentStep = 1 })
+            } else {
+                Column(
                     modifier = Modifier
-                        .padding(cardTextPadding)
-                )
-                Text(
-                    text = "Braillify is a mobile application designed to help visually impaired users read and write using Braille, with the support of voice assistance and machine learning technology.",
-                    color = subText,
-                    fontSize = subTextFont,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(cardTextPadding)
-                )
-                Text(
-                    text = "Before we get started. Follow the steps below.",
-                    color = subText,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = subTextFont,
-                    modifier = Modifier
-                        .padding(
-                            top = 24.dp,
-                            start = 24.dp,
-                            end = 24.dp,
-                            bottom = 24.dp
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                ) {
+                    // Header
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clickable { currentStep-- },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = "‹", color = TextDark, fontSize = 28.sp)
+                        }
+                        Spacer(Modifier.weight(1f))
+                        Image(
+                            painter = painterResource(id = R.drawable.braillify_logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
                         )
-                )
+                        Spacer(Modifier.size(8.dp))
+                        Text(
+                            text = "Braillify",
+                            color = Purple,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.weight(1f))
+                        Spacer(Modifier.size(32.dp))
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    // Progress Bar
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        for (i in 1..4) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(if (i <= currentStep) Purple else PurpleLight)
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Step Content
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        when (currentStep) {
+                            1 -> Step1Talkback(
+                                isClickedYet = isClickedYet,
+                                warningDesc = warningDesc,
+                                onActionClick = {
+                                    try {
+                                        val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Log.e("DEBUG", "Error opening accessibility settings", e)
+                                    }
+                                    isClickedYet = true
+                                },
+                                onNext = { currentStep = 2 },
+                                onShowWarning = { warningDesc = it }
+                            )
+                            2 -> Step2Keyboard(
+                                isClickedYet = isClickedYet,
+                                warningDesc = warningDesc,
+                                onActionClick = {
+                                    try {
+                                        val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Log.e("DEBUG", "Error opening keyboard settings", e)
+                                    }
+                                    isClickedYet = true
+                                },
+                                onNext = { currentStep = 3 },
+                                onShowWarning = { warningDesc = it }
+                            )
+                            3 -> Step3Calibration(
+                                onActionClick = {
+                                    Calibrate().calibrateNew()
+                                    focusRequester.requestFocus()
+                                    keyboardController?.show()
+                                    isClickedYet = true
+                                },
+                                onNext = { currentStep = 4 }
+                            )
+                            4 -> Step4Emergency(
+                                onOpenEmergency = { showEmergencyScreen = true },
+                                onNext = onFinished
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+                }
             }
         }
     }
+}
 
-    @Composable
-    fun infoCard(messInstruction: String, messDesc: String, ) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(cardTextPadding)
-                .clip(
-                    RoundedCornerShape(20.dp)
-                )
-                .background(cardBackground)
-        ) {
-            Text(
-                text = messInstruction,
-                color = Color.Black,
-                fontSize = mainTextFont,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .padding(cardTextPadding)
-            )
-            Text(
-                text = messDesc,
-                color = subText,
-                fontWeight = FontWeight.Bold,
-                fontSize = subTextFont,
-                modifier = Modifier
-                    .padding(
-                        top = 24.dp,
-                        start = 24.dp,
-                        end = 24.dp,
-                        bottom = 24.dp
-                    )
-            )
-        }
-    }
+// Phase 0 - Welcome
+@Composable
+private fun WelcomeScreen(onStart: () -> Unit) {
+    var showLearnMore by remember { mutableStateOf(false) }
 
-    @Composable
-    fun buttonInteract(buttDesc: String,stepsAchieved: Int,context: Context,focusRequester: FocusRequester,onClickAction: () -> Unit) {
-        val keyboardController = LocalSoftwareKeyboardController.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 20.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(40.dp))
+
+        Text(
+            text = "Welcome to Braillify",
+            color = TextDark,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = "Type, learn, and stay connected —\nwith Braille.",
+            color = TextGray,
+            fontSize = 15.sp,
+            textAlign = TextAlign.Center,
+            lineHeight = 22.sp
+        )
+
+        Spacer(Modifier.height(60.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.braillify_logo),
+            contentDescription = "Braillify Logo",
+            modifier = Modifier.size(120.dp)
+        )
+
+        Spacer(Modifier.height(60.dp))
 
         Button(
-            onClick = {
-                Log.d("DEBUG", "Clicked Action Button for step $stepsAchieved")
-                when (stepsAchieved) {
-                    0 -> {
-                        try {
-                            val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            Log.e("DEBUG", "Error opening accessibility settings", e)
-                        }
-                    }
-                    1 -> {
-                        try {
-                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            context.startActivity(intent)
-                        } catch (e: Exception) {
-                            Log.e("DEBUG", "Error opening accessibility settings", e)
-                        }
-                    }
-                    else -> {
-                        Log.d("DEBUG", "Calibration Clicked")
-                        Calibrate().calibrateNew()
-
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
-                    }
-                }
-                onClickAction()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B3FE4)),
+            onClick = onStart,
             modifier = Modifier
-                .padding(
-                    start = 24.dp,
-                    end = 24.dp,
-                    top = 12.dp,
-                    bottom = 0.dp
-                )
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Purple)
         ) {
-            Text(
-                text = buttDesc,
-                Modifier.padding(10.dp)
-            )
+            Text("Get Started", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
+        Spacer(Modifier.height(12.dp))
+        TextButton(onClick = { showLearnMore = true }) {
+            Text("Learn more", color = Purple, fontSize = 14.sp)
+        }
+        Spacer(Modifier.height(24.dp))
     }
 
-    @Composable
-    fun continueInteract(currentWarningDesc: String,stepsAchieved: Int,isClickedYet: Boolean,onShowWarning: (String) -> Unit,onContinueClick: () -> Unit) {
-        Column {
-            Text(
-                text = currentWarningDesc,
-                fontWeight = FontWeight.Bold,
-                color = Color.Red,
-                fontSize = 10.sp,
-                modifier = Modifier
-                    .padding(
-                        top = 12.dp,
-                        start = 24.dp,
-                        end = 24.dp,
-                        bottom = 0.dp
+    // Learn More Dialog
+    if (showLearnMore) {
+        AlertDialog(
+            onDismissRequest = { showLearnMore = false },
+            title = {
+                Text("What is Braillify?", color = TextDark, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState())
+                ) {
+                    Text(
+                        text = "Purpose of the app\n",
+                        color = Purple,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
                     )
+                    Text(
+                        text = "Braillify is a mobile application designed to help visually impaired users type, explore, and learn Braille using their mobile devices. It brings together Braille typing, accessibility support, and learning tools in one application.\n\n" +
+                                "Whether you are new to Braille or already familiar with it, Braillify provides features to help you practice Braille characters, communicate through text, and navigate the app with accessibility in mind.\n\n" +
+                                "With a simple interface and guided setup, Braillify aims to make using Braille on a touchscreen more approachable and convenient.\n\n" +
+                                "What you can do with Braillify:\n" +
+                                "- Type using a Braille keyboard.\n" +
+                                "- Explore Braille characters and their dot patterns.\n" +
+                                "- Practice and improve your familiarity with Braille.\n" +
+                                "- Use available accessibility features while interacting with the app.\n" +
+                                "- Save useful information in Notes.\n\n" +
+                                "Your journey with Braille starts here.",
+                        color = TextDark,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLearnMore = false }) {
+                    Text("Close", color = Purple, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(18.dp)
+        )
+    }
+}
+
+// Phase 1 - Talkback
+@Composable
+private fun Step1Talkback(
+    isClickedYet: Boolean,
+    warningDesc: String,
+    onActionClick: () -> Unit,
+    onNext: () -> Unit,
+    onShowWarning: (String) -> Unit
+) {
+    SetupStepLayout(
+        stepText = "Step 1 of 4",
+        iconRes = R.drawable.onb_accessibility_24px,
+        title = "Enable TalkBack Shortcut",
+        description = "TalkBack touch gestures can interfere with multi-finger Braille typing. Enabling the TalkBack shortcut lets you quickly toggle TalkBack off while typing and turn it back on when you're done.",
+        infoText = "This prevents TalkBack from interfering with your Braille typing.",
+        primaryButtonText = "Open Settings",
+        onPrimaryClick = onActionClick,
+        secondaryButtonText = "I've enabled it — Continue",
+        onSecondaryClick = {
+            if (!isClickedYet) onShowWarning("Please enable accessibility service to continue.")
+            else onNext()
+        },
+        warningDesc = warningDesc
+    )
+}
+
+// Phase 2 - Keyboard
+@Composable
+private fun Step2Keyboard(
+    isClickedYet: Boolean,
+    warningDesc: String,
+    onActionClick: () -> Unit,
+    onNext: () -> Unit,
+    onShowWarning: (String) -> Unit
+) {
+    SetupStepLayout(
+        stepText = "Step 2 of 4",
+        iconRes = R.drawable.onb_keyboard_24px,
+        title = "Enable Braillify Keyboard",
+        description = "Add Braillify to your keyboard settings to start typing in Braille.",
+        infoText = "This allows you to use Braillify as your keyboard input method.",
+        primaryButtonText = "Open Settings",
+        onPrimaryClick = onActionClick,
+        secondaryButtonText = "I've enabled it — Continue",
+        onSecondaryClick = {
+            if (!isClickedYet) onShowWarning("Please enable Braillify Keyboard on Settings.")
+            else onNext()
+        },
+        warningDesc = warningDesc
+    )
+}
+
+// Phase 3 - Calibration
+@Composable
+private fun Step3Calibration(
+    onActionClick: () -> Unit,
+    onNext: () -> Unit
+) {
+    SetupStepLayout(
+        stepText = "Step 3 of 4",
+        iconRes = R.drawable.onb_touch_24px,
+        title = "Calibrate Your Touchpoints",
+        description = "Tap six points on the screen to align the Braille keys with where your fingers naturally rest.",
+        infoText = "This ensures accurate Braille input and a smoother experience.",
+        primaryButtonText = "Start Calibration",
+        onPrimaryClick = onActionClick,
+        secondaryButtonText = "I'll do it later",
+        onSecondaryClick = onNext,
+        warningDesc = ""
+    )
+}
+
+// Phase 4 - Emergency Contact
+@Composable
+private fun Step4Emergency(
+    onOpenEmergency: () -> Unit,
+    onNext: () -> Unit
+) {
+    SetupStepLayout(
+        stepText = "Step 4 of 4",
+        iconRes = R.drawable.onb_emergency_24px,
+        title = "Set up Emergency Contact",
+        description = "Add a trusted contact so someone can be reached in case of an emergency.",
+        infoText = "This adds an extra layer of safety when you need it most.",
+        primaryButtonText = "Add Contact",
+        onPrimaryClick = onOpenEmergency,
+        secondaryButtonText = "Skip for now",
+        onSecondaryClick = onNext,
+        warningDesc = ""
+    )
+}
+
+// Shared Layout for Setup Steps
+@Composable
+private fun SetupStepLayout(
+    stepText: String,
+    iconRes: Int,
+    title: String,
+    description: String,
+    infoText: String,
+    primaryButtonText: String,
+    onPrimaryClick: () -> Unit,
+    secondaryButtonText: String,
+    onSecondaryClick: () -> Unit,
+    warningDesc: String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .background(PurpleLight, RoundedCornerShape(24.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(48.dp)
             )
-            ElevatedButton(
-                onClick = {
-                    if (!isClickedYet) {
-                        when (stepsAchieved) {
-                            0 -> {
-                                onShowWarning("Please enable accessibility service to continue.")
-                            }
-                            1 -> {
-                                onShowWarning("Please enable Braillify Keyboard on Settings.")
-                            }
-                            else -> {
-                                onShowWarning("")
-                            }
-                        }
-                    } else {
-                        onContinueClick()
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = cardBackground,
-                    contentColor = Color.Black
-                ),
-                modifier = Modifier
-                    .padding(
-                        start = 24.dp,
-                        end = 24.dp,
-                        top = 6.dp,
-                        bottom = 12.dp
-                    )
-                    .fillMaxWidth()
-            ) {
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = stepText,
+            color = TextDark,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = ACardWhite),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "Continue",
-                    Modifier.padding(10.dp)
+                    text = title,
+                    color = TextDark,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
                 )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = description,
+                    color = TextGray,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp
+                )
+                Spacer(Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Background),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                            contentDescription = null,
+                            tint = Purple,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(Modifier.size(12.dp))
+                        Text(
+                            text = infoText,
+                            color = TextDark,
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
             }
         }
+
+        Spacer(Modifier.height(24.dp))
+
+        if (warningDesc.isNotEmpty()) {
+            Text(
+                text = warningDesc,
+                color = Color.Red,
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        Button(
+            onClick = onPrimaryClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Purple)
+        ) {
+            Text(primaryButtonText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        Spacer(Modifier.height(12.dp))
+
+        Button(
+            onClick = onSecondaryClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Purple
+            ),
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, Purple)
+        ) {
+            Text(secondaryButtonText, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        Spacer(Modifier.height(16.dp))
     }
 }
