@@ -1,5 +1,6 @@
 package com.example.braillify.screens
 
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -70,7 +72,9 @@ internal fun BrailleEntryDetailScreen(
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = DictTextDark, fontSize = 28.sp)
+                Text(text = "‹", color = DictTextDark, fontSize = 28.sp, modifier = Modifier.semantics {
+                    contentDescription = "Back Button"
+                })
             }
             Spacer(Modifier.size(8.dp))
             Text(
@@ -85,7 +89,7 @@ internal fun BrailleEntryDetailScreen(
 
         // Hero card
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().semantics { hideFromAccessibility() },
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = PurpleLightColor),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -169,49 +173,53 @@ internal fun BrailleEntryDetailScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Pattern section
-        Text(
-            text = "Braille Pattern",
-            color = DictTextDark,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+        // Pattern section (hidden completely from TalkBack)
+        Column(
+            modifier = Modifier.clearAndSetSemantics { }
         ) {
-            // Preview cell on the left in a white card
-            Card(
-                modifier = Modifier.size(80.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            Text(
+                text = "Braille Pattern",
+                color = DictTextDark,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                // Preview cell on the left in a white card
+                Card(
+                    modifier = Modifier.size(80.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardWhite),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    BrailleCell(
-                        activeDots = entry.dots,
-                        dotSize = 10.dp,
-                        gap = 8.dp
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        BrailleCell(
+                            activeDots = entry.dots,
+                            dotSize = 10.dp,
+                            gap = 8.dp
+                        )
+                    }
                 }
-            }
 
-            Spacer(Modifier.size(20.dp))
+                Spacer(Modifier.size(20.dp))
 
-            // Legend — dot number, colored dot, description
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DotLegendRow(1, "top left",     entry.dots)
-                DotLegendRow(2, "middle left",  entry.dots)
-                DotLegendRow(3, "bottom left",  entry.dots)
-                DotLegendRow(4, "top right",    entry.dots)
-                DotLegendRow(5, "middle right", entry.dots)
-                DotLegendRow(6, "bottom right", entry.dots)
+                // Legend — dot number, colored dot, description
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DotLegendRow(1, "top left",     entry.dots)
+                    DotLegendRow(2, "middle left",  entry.dots)
+                    DotLegendRow(3, "bottom left",  entry.dots)
+                    DotLegendRow(4, "top right",    entry.dots)
+                    DotLegendRow(5, "middle right", entry.dots)
+                    DotLegendRow(6, "bottom right", entry.dots)
+                }
             }
         }
     }
