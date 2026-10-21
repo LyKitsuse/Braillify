@@ -63,6 +63,7 @@ import com.example.braillify.screens.ProfileManager
 import com.example.braillify.screens.SettingsPrefs
 import com.example.braillify.ui.theme.BraillifyTheme
 import com.example.braillify.SequentialMode
+import com.example.braillify.EmergencyContact
 import java.util.Locale
 import kotlin.math.abs
 import android.view.WindowManager
@@ -90,6 +91,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
     private var tts: TextToSpeech? = null
     private var isTtsInitialized = false
     val seq = SequentialMode()
+    val emergency = EmergencyContact()
 
     companion object {
         var isCalibrating by mutableStateOf(false)
@@ -449,6 +451,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 val rawOutput = runModel(modelTaps, cal.calibratedMain)
                                                 brailleOutput = processRawBraille(rawOutput, dict)
 
+                                                emergency.checkIfSOS(rawOutput)
+
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
                                                     if (brailleOutput !in listOf(
                                                             "Capital Sign",
@@ -570,6 +574,8 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         printTapPosSetter: (String) -> Unit,
         onBrailleOutputChanged: (String) -> Unit = {}
     ) {
+        if (emergency.handleSwipe(totalDx, totalDy)) return
+
         if (isCalibrating) {
             cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard))
             speakText("Calibration cancelled")
