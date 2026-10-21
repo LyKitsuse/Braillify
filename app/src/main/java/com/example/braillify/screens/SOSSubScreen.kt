@@ -47,14 +47,12 @@ private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
 @Composable
-fun SOSSubScreen(
-    onBack: () -> Unit = {},
-    onSOSGestureClick: () -> Unit = {}
-) {
+fun SOSSubScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
     var sosEnabled by remember { mutableStateOf(true) }
 
     var showEmergencyContact by remember { mutableStateOf(false) }
+    var showSOSGesture by remember { mutableStateOf(false) }
 
     var savedNumber by remember { mutableStateOf(SettingsPrefs.getEmergencyNumber(context)) }
 
@@ -67,6 +65,17 @@ fun SOSSubScreen(
     if (showEmergencyContact) {
         EmergencyContactScreen(
             onBack = { showEmergencyContact = false }
+        )
+        return
+    }
+
+    if (showSOSGesture) {
+        SOSGestureScreen(
+            onBack = { showSOSGesture = false },
+            onSave = { newGesture ->
+                SettingsPrefs.setSOSGesture(context, newGesture)
+                showSOSGesture = false
+            }
         )
         return
     }
@@ -175,8 +184,8 @@ fun SOSSubScreen(
         SOSRow(
             iconRes = R.drawable.gesture_24px,
             title = "SOS Gesture",
-            subtitle = "Triple tap (default)",
-            onClick = onSOSGestureClick
+            subtitle = SettingsPrefs.getSOSGesture(context),
+            onClick = { showSOSGesture = true }
         )
 
         Spacer(Modifier.height(10.dp))
