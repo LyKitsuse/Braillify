@@ -10,6 +10,8 @@ object SettingsPrefs {
     private const val KEY_LANDSCAPE_TYPING = "landscape_typing"
     private const val KEY_SEQUENTIAL_MODE = "sequential_mode"
     private const val KEY_EMERGENCY_NUMBER = "emergency_number"
+    private const val KEY_SOS_GESTURE = "sos_gesture"
+
 
     fun getVoiceSpeed(context: Context): String =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -63,5 +65,15 @@ object SettingsPrefs {
     fun setEmergencyNumber(context: Context, value: String) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_EMERGENCY_NUMBER, value).apply()
+    }
+
+    fun getSOSGesture(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_SOS_GESTURE, "Triple Tap, Swipe, and Then Triple Tap")
+            ?: "Triple Tap, Swipe, and Then Triple Tap"
+
+    fun setSOSGesture(context: Context, value: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_SOS_GESTURE, value).apply()
     }
 }
