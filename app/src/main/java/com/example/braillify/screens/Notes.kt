@@ -27,6 +27,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -330,8 +332,17 @@ private fun NoteEditorScreen(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Title") },
+            label = { Text("Title", color = TextGray) },
             singleLine = true,
+            textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                focusedLabelColor = TextDark,
+                unfocusedLabelColor = TextGray,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -340,7 +351,16 @@ private fun NoteEditorScreen(
         OutlinedTextField(
             value = body,
             onValueChange = { body = it },
-            label = { Text("Write your note...") },
+            label = { Text("Write your note...", color = TextGray) },
+            textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                focusedLabelColor = TextDark,
+                unfocusedLabelColor = TextGray,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)
