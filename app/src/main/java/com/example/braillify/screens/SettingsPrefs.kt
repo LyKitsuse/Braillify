@@ -11,6 +11,7 @@ object SettingsPrefs {
     private const val KEY_SEQUENTIAL_MODE = "sequential_mode"
     private const val KEY_EMERGENCY_NUMBER = "emergency_number"
     private const val KEY_SOS_GESTURE = "sos_gesture"
+    private const val KEY_SOS_ENABLED = "sos_enabled"
 
 
     fun getVoiceSpeed(context: Context): String =
@@ -75,5 +76,14 @@ object SettingsPrefs {
     fun setSOSGesture(context: Context, value: String) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_SOS_GESTURE, value).apply()
+    }
+
+    fun getSOSEnabled(context: Context): Boolean =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SOS_ENABLED, true)
+
+    fun setSOSEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_SOS_ENABLED, value).apply()
     }
 }

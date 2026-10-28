@@ -49,7 +49,7 @@ private val TextGray = Color(0xFF8A8A8A)
 @Composable
 fun SOSSubScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
-    var sosEnabled by remember { mutableStateOf(true) }
+    var sosEnabled by remember { mutableStateOf(SettingsPrefs.getSOSEnabled(context)) }
 
     var showEmergencyContact by remember { mutableStateOf(false) }
     var showSOSGesture by remember { mutableStateOf(false) }
@@ -64,6 +64,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
         if (!showSOSGesture) {
             savedGesture = SettingsPrefs.getSOSGesture(context)
         }
+        sosEnabled = SettingsPrefs.getSOSEnabled(context)
     }
 
     if (showEmergencyContact) {
@@ -238,7 +239,10 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 }
                 Switch(
                     checked = sosEnabled,
-                    onCheckedChange = { sosEnabled = it },
+                    onCheckedChange = { 
+                        sosEnabled = it
+                        SettingsPrefs.setSOSEnabled(context, it)
+                    },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color.White,
                         checkedTrackColor = Purple,

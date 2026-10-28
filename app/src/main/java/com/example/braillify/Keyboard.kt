@@ -451,7 +451,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
                                                 val rawOutput = runModel(modelTaps, cal.calibratedMain)
                                                 brailleOutput = processRawBraille(rawOutput, dict)
 
-                                                emergency.checkIfSOS(rawOutput)
+                                                emergency.checkIfSOS(this@Keyboard, rawOutput)
 
                                                 if (brailleOutput.isNotEmpty() && brailleOutput != "Null") {
                                                     if (brailleOutput !in listOf(

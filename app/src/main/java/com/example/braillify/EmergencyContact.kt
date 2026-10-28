@@ -12,7 +12,12 @@ class EmergencyContact {
     var count = 0
     var state = 0 // 0 = default, 1 = wait swipe up, 2 = wait swipe down
 
-    fun checkIfSOS(out: String) {
+    fun checkIfSOS(context: Context, out: String) {
+        if (!SettingsPrefs.getSOSEnabled(context)) {
+            count = 0
+            state = 0
+            return
+        }
         if (out == "111111") {
             count++
             Log.d("DEBUG", "Count: $count")
@@ -75,6 +80,11 @@ class EmergencyContact {
     }
 
     fun handleSwipe(totalDx: Float, totalDy: Float, context: Context, onSpeak: ((String) -> Unit)? = null): Boolean {
+        if (!SettingsPrefs.getSOSEnabled(context)) {
+            state = 0
+            count = 0
+            return false
+        }
         if (state == 0) return false
 
         val isVertical = kotlin.math.abs(totalDy) > kotlin.math.abs(totalDx)

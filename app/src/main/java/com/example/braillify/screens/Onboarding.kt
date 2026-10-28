@@ -1,6 +1,9 @@
 package com.example.braillify.screens
 
+import android.content.ComponentName
 import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
