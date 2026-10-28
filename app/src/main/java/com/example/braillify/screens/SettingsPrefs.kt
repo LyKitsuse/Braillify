@@ -69,8 +69,8 @@ object SettingsPrefs {
 
     fun getSOSGesture(context: Context): String =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_SOS_GESTURE, "Triple Tap, Swipe, and Then Triple Tap")
-            ?: "Triple Tap, Swipe, and Then Triple Tap"
+            .getString(KEY_SOS_GESTURE, "Tap 6 Dots 5 times, and Then Swipe Up then Swipe Down")
+            ?: "Tap 6 Dots 5 times, and Then Swipe Up then Swipe Down"
 
     fun setSOSGesture(context: Context, value: String) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

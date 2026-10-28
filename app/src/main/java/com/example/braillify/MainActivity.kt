@@ -23,12 +23,12 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // isFirstTime set to true if not set to true already
-        if (!sharedPreferences.contains("isFirstTime")) {
-            sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
-        }
+//        if (!sharedPreferences.contains("isFirstTime")) {
+//            sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
+//        }
 
         // Force isFirstTime to true
-//        sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
+        sharedPreferences.edit().putBoolean("isFirstTime", true).apply()
         setContent {
             BraillifyTheme {
                 var isFirstTime by remember {

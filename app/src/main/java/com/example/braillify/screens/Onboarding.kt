@@ -7,6 +7,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +36,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
@@ -58,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
 import com.example.braillify.Keyboard
 import com.example.braillify.R
+import kotlinx.coroutines.delay
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
@@ -70,29 +74,45 @@ class Onboarding {
     @Preview(showBackground = true)
     @Composable
     fun OnboardingProcess(onFinished: () -> Unit = {}) {
-        var currentStep by remember { mutableStateOf(0) }
-        var isClickedYet by remember { mutableStateOf(false) }
+        var currentStep by remember { mutableIntStateOf(0) }
+        var step1Done by remember { mutableStateOf(false) }
+        var step2Done by remember { mutableStateOf(false) }
+        var step3Done by remember { mutableStateOf(false) }
+        var step4Done by remember { mutableStateOf(false) }
         var warningDesc by remember { mutableStateOf("") }
 
         val context = LocalContext.current
+        val view = LocalView.current
         val keyboardController = LocalSoftwareKeyboardController.current
 
         var text by remember { mutableStateOf("") }
         val focusRequester = remember { FocusRequester() }
+        val stepFocusRequester = remember { FocusRequester() }
+        val scrollState = rememberScrollState()
         var wasCalibrating by remember { mutableStateOf(false) }
 
         var showEmergencyScreen by remember { mutableStateOf(false) }
 
         LaunchedEffect(currentStep) {
-            isClickedYet = false
-            warningDesc = ""
+            if (currentStep in 1..4) {
+                warningDesc = ""
+                scrollState.scrollTo(0)
+                delay(100)
+                try {
+                    stepFocusRequester.requestFocus()
+                } catch (_: Exception) {}
+                view.announceForAccessibility("Step $currentStep of 4")
+            }
         }
 
         LaunchedEffect(Keyboard.isCalibrating) {
             if (Keyboard.isCalibrating) {
                 wasCalibrating = true
             } else if (wasCalibrating) {
-                if (currentStep == 3) currentStep = 4
+                if (currentStep == 3) {
+                    step3Done = true
+                    currentStep = 4
+                }
             }
         }
 
@@ -141,7 +161,7 @@ class Onboarding {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(scrollState)
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
                     // Header
@@ -202,8 +222,9 @@ class Onboarding {
                     ) {
                         when (currentStep) {
                             1 -> Step1Talkback(
-                                isClickedYet = isClickedYet,
+                                isClickedYet = step1Done,
                                 warningDesc = warningDesc,
+                                stepFocusRequester = stepFocusRequester,
                                 onActionClick = {
                                     try {
                                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
@@ -213,14 +234,18 @@ class Onboarding {
                                     } catch (e: Exception) {
                                         Log.e("DEBUG", "Error opening accessibility settings", e)
                                     }
-                                    isClickedYet = true
+                                    step1Done = true
                                 },
-                                onNext = { currentStep = 2 },
+                                onNext = {
+                                    step1Done = true
+                                    currentStep = 2
+                                },
                                 onShowWarning = { warningDesc = it }
                             )
                             2 -> Step2Keyboard(
-                                isClickedYet = isClickedYet,
+                                isClickedYet = step2Done,
                                 warningDesc = warningDesc,
+                                stepFocusRequester = stepFocusRequester,
                                 onActionClick = {
                                     try {
                                         val intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS).apply {
@@ -230,23 +255,37 @@ class Onboarding {
                                     } catch (e: Exception) {
                                         Log.e("DEBUG", "Error opening keyboard settings", e)
                                     }
-                                    isClickedYet = true
+                                    step2Done = true
                                 },
-                                onNext = { currentStep = 3 },
+                                onNext = {
+                                    step2Done = true
+                                    currentStep = 3
+                                },
                                 onShowWarning = { warningDesc = it }
                             )
                             3 -> Step3Calibration(
+                                stepFocusRequester = stepFocusRequester,
                                 onActionClick = {
+                                    step3Done = true
                                     Calibrate().calibrateNew()
                                     focusRequester.requestFocus()
                                     keyboardController?.show()
-                                    isClickedYet = true
                                 },
-                                onNext = { currentStep = 4 }
+                                onNext = {
+                                    step3Done = true
+                                    currentStep = 4
+                                }
                             )
                             4 -> Step4Emergency(
-                                onOpenEmergency = { showEmergencyScreen = true },
-                                onNext = onFinished
+                                stepFocusRequester = stepFocusRequester,
+                                onOpenEmergency = {
+                                    step4Done = true
+                                    showEmergencyScreen = true
+                                },
+                                onNext = {
+                                    step4Done = true
+                                    onFinished()
+                                }
                             )
                         }
                     }
@@ -365,6 +404,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
 private fun Step1Talkback(
     isClickedYet: Boolean,
     warningDesc: String,
+    stepFocusRequester: FocusRequester? = null,
     onActionClick: () -> Unit,
     onNext: () -> Unit,
     onShowWarning: (String) -> Unit
@@ -382,7 +422,8 @@ private fun Step1Talkback(
             if (!isClickedYet) onShowWarning("Please enable accessibility service to continue.")
             else onNext()
         },
-        warningDesc = warningDesc
+        warningDesc = warningDesc,
+        stepFocusRequester = stepFocusRequester
     )
 }
 
@@ -391,6 +432,7 @@ private fun Step1Talkback(
 private fun Step2Keyboard(
     isClickedYet: Boolean,
     warningDesc: String,
+    stepFocusRequester: FocusRequester? = null,
     onActionClick: () -> Unit,
     onNext: () -> Unit,
     onShowWarning: (String) -> Unit
@@ -408,13 +450,15 @@ private fun Step2Keyboard(
             if (!isClickedYet) onShowWarning("Please enable Braillify Keyboard on Settings.")
             else onNext()
         },
-        warningDesc = warningDesc
+        warningDesc = warningDesc,
+        stepFocusRequester = stepFocusRequester
     )
 }
 
 // Phase 3 - Calibration
 @Composable
 private fun Step3Calibration(
+    stepFocusRequester: FocusRequester? = null,
     onActionClick: () -> Unit,
     onNext: () -> Unit
 ) {
@@ -428,13 +472,15 @@ private fun Step3Calibration(
         onPrimaryClick = onActionClick,
         secondaryButtonText = "I'll do it later",
         onSecondaryClick = onNext,
-        warningDesc = ""
+        warningDesc = "",
+        stepFocusRequester = stepFocusRequester
     )
 }
 
 // Phase 4 - Emergency Contact
 @Composable
 private fun Step4Emergency(
+    stepFocusRequester: FocusRequester? = null,
     onOpenEmergency: () -> Unit,
     onNext: () -> Unit
 ) {
@@ -448,7 +494,8 @@ private fun Step4Emergency(
         onPrimaryClick = onOpenEmergency,
         secondaryButtonText = "Skip for now",
         onSecondaryClick = onNext,
-        warningDesc = ""
+        warningDesc = "",
+        stepFocusRequester = stepFocusRequester
     )
 }
 
@@ -464,7 +511,8 @@ private fun SetupStepLayout(
     onPrimaryClick: () -> Unit,
     secondaryButtonText: String,
     onSecondaryClick: () -> Unit,
-    warningDesc: String
+    warningDesc: String,
+    stepFocusRequester: FocusRequester? = null
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -490,7 +538,10 @@ private fun SetupStepLayout(
             text = stepText,
             color = TextDark,
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .then(if (stepFocusRequester != null) Modifier.focusRequester(stepFocusRequester) else Modifier)
+                .focusable()
         )
 
         Spacer(Modifier.height(24.dp))

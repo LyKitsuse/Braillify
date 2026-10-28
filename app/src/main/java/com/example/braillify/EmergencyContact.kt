@@ -3,6 +3,7 @@ package com.example.braillify
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.speech.tts.TextToSpeech
 import android.telecom.TelecomManager
 import android.util.Log
 import com.example.braillify.screens.SettingsPrefs
@@ -25,9 +26,24 @@ class EmergencyContact {
         }
     }
 
-    fun pingPhoneNum(context: Context) {
+    fun pingPhoneNum(context: Context, onSpeak: ((String) -> Unit)? = null) {
         val number = "0${SettingsPrefs.getEmergencyNumber(context)}"
         if (number.isNotEmpty()) {
+            val message = "Emergency Contact, Redirecting to Phone Call"
+            if (onSpeak != null) {
+                onSpeak(message)
+            } else {
+                var tts: TextToSpeech? = null
+                tts = TextToSpeech(context.applicationContext) { status ->
+                    if (status == TextToSpeech.SUCCESS) {
+                        val params = android.os.Bundle().apply {
+                            putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, SettingsPrefs.getVoiceVolume(context))
+                        }
+                        tts?.speak(message, TextToSpeech.QUEUE_FLUSH, params, "EmergencyTTS")
+                    }
+                }
+            }
+
             val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
             val defaultDialer = telecomManager?.defaultDialerPackage
 
@@ -58,7 +74,7 @@ class EmergencyContact {
         }
     }
 
-    fun handleSwipe(totalDx: Float, totalDy: Float, context: Context): Boolean {
+    fun handleSwipe(totalDx: Float, totalDy: Float, context: Context, onSpeak: ((String) -> Unit)? = null): Boolean {
         if (state == 0) return false
 
         val isVertical = kotlin.math.abs(totalDy) > kotlin.math.abs(totalDx)
@@ -75,7 +91,7 @@ class EmergencyContact {
             count = 0
             state = 0
             Log.d("DEBUG", "Call Number")
-            pingPhoneNum(context)
+            pingPhoneNum(context, onSpeak)
             return true
         }
 

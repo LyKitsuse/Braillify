@@ -23,13 +23,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,7 +52,18 @@ fun SOSGestureScreen(
     onBack: () -> Unit = {},
     onSave: (String) -> Unit = {}
 ) {
-    var selectedOption by remember { mutableStateOf(0) }
+    val context = LocalContext.current
+
+    val option0Title = "Tap 6 Dots 5 times, and Then Swipe Up then Swipe Down"
+    val option0Subtitle = "Tap 6 Dots 5 times then Swipe Up and Down"
+
+    val option1Title = "Triple Tap, Swipe, and Then Triple Tap"
+    val option1Subtitle = "Tap 3 times, swipe, then tap 3 times"
+
+    val currentSaved = remember { SettingsPrefs.getSOSGesture(context) }
+    val initialSelection = if (currentSaved == option1Title) 1 else 0
+
+    var selectedOption by remember { mutableIntStateOf(initialSelection) }
 
     BackHandler(enabled = true) { onBack() }
 
@@ -144,30 +156,19 @@ fun SOSGestureScreen(
 
         // Options
         GestureOption(
-            title = "Triple Tap, Swipe, and Then Triple Tap",
-            subtitle = "Tap 3 times, swipe, then tap 3 times",
+            title = option0Title,
+            subtitle = option0Subtitle,
             isSelected = selectedOption == 0,
             onClick = { selectedOption = 0 }
         )
 
         Spacer(Modifier.height(12.dp))
 
-        // Empty Option 2
         GestureOption(
-            title = "",
-            subtitle = "",
+            title = option1Title,
+            subtitle = option1Subtitle,
             isSelected = selectedOption == 1,
             onClick = { selectedOption = 1 }
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        // Empty Option 3
-        GestureOption(
-            title = "",
-            subtitle = "",
-            isSelected = selectedOption == 2,
-            onClick = { selectedOption = 2 }
         )
 
         Spacer(Modifier.height(24.dp))
@@ -175,9 +176,8 @@ fun SOSGestureScreen(
         // Save Button (Moved here, right below the options)
         Button(
             onClick = {
-                if (selectedOption == 0) {
-                    onSave("Triple Tap, Swipe, and Then Triple Tap")
-                }
+                val selectedTitle = if (selectedOption == 1) option1Title else option0Title
+                onSave(selectedTitle)
             },
             modifier = Modifier
                 .fillMaxWidth()

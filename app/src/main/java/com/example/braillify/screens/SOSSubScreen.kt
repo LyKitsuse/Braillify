@@ -55,10 +55,14 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
     var showSOSGesture by remember { mutableStateOf(false) }
 
     var savedNumber by remember { mutableStateOf(SettingsPrefs.getEmergencyNumber(context)) }
+    var savedGesture by remember { mutableStateOf(SettingsPrefs.getSOSGesture(context)) }
 
-    LaunchedEffect(showEmergencyContact) {
+    LaunchedEffect(showEmergencyContact, showSOSGesture) {
         if (!showEmergencyContact) {
             savedNumber = SettingsPrefs.getEmergencyNumber(context)
+        }
+        if (!showSOSGesture) {
+            savedGesture = SettingsPrefs.getSOSGesture(context)
         }
     }
 
@@ -74,6 +78,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
             onBack = { showSOSGesture = false },
             onSave = { newGesture ->
                 SettingsPrefs.setSOSGesture(context, newGesture)
+                savedGesture = newGesture
                 showSOSGesture = false
             }
         )
@@ -184,7 +189,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
         SOSRow(
             iconRes = R.drawable.gesture_24px,
             title = "SOS Gesture",
-            subtitle = SettingsPrefs.getSOSGesture(context),
+            subtitle = savedGesture,
             onClick = { showSOSGesture = true }
         )
 

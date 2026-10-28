@@ -574,7 +574,7 @@ class Keyboard : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, Save
         printTapPosSetter: (String) -> Unit,
         onBrailleOutputChanged: (String) -> Unit = {}
     ) {
-        if (emergency.handleSwipe(totalDx, totalDy, this@Keyboard)) return
+        if (emergency.handleSwipe(totalDx, totalDy, this@Keyboard, ::speakText)) return
 
         if (isCalibrating) {
             cal.exitCalibration(this@Keyboard, resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || SettingsPrefs.getLandscapeTyping(this@Keyboard))
