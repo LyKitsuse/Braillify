@@ -1,5 +1,6 @@
 package com.example.braillify.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,8 +57,11 @@ fun VoiceVolumeScreen(
     initialVolume: Float = 1.0f,
     onVolumeChanged: (Float) -> Unit = {}
 ) {
+    val context = LocalContext.current
     var volume by remember { mutableFloatStateOf(initialVolume) }
     val percent = (volume * 100).toInt()
+
+    BackHandler(enabled = true) { onBack() }
 
     Column(
         modifier = Modifier
@@ -92,7 +97,7 @@ fun VoiceVolumeScreen(
                 )
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Voice Volume",
+                    text = AppStrings.get(context, "vv_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -142,7 +147,7 @@ fun VoiceVolumeScreen(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Current volume",
+                    text = AppStrings.get(context, "vv_current_volume"),
                     color = TextGray,
                     fontSize = 13.sp
                 )
@@ -158,7 +163,7 @@ fun VoiceVolumeScreen(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.settings_1va_2vv_1low_mi_24px),
-                contentDescription = "Low volume",
+                contentDescription = AppStrings.get(context, "vv_low_content_desc"),
                 tint = Purple,
                 modifier = Modifier.size(24.dp)
             )
@@ -179,7 +184,7 @@ fun VoiceVolumeScreen(
             )
             Icon(
                 painter = painterResource(id = R.drawable.settings_1va_2vv_3high_mi_24px),
-                contentDescription = "High volume",
+                contentDescription = AppStrings.get(context, "vv_high_content_desc"),
                 tint = Purple,
                 modifier = Modifier.size(24.dp)
             )
@@ -194,7 +199,7 @@ fun VoiceVolumeScreen(
         ) {
             PresetButton(
                 modifier = Modifier.weight(1f),
-                title = "Low",
+                title = AppStrings.get(context, "vv_low"),
                 subtitle = "25%",
                 iconRes = R.drawable.settings_1va_2vv_1low_mi_24px,
                 onClick = {
@@ -204,7 +209,7 @@ fun VoiceVolumeScreen(
             )
             PresetButton(
                 modifier = Modifier.weight(1f),
-                title = "Medium",
+                title = AppStrings.get(context, "vv_medium"),
                 subtitle = "50%",
                 iconRes = R.drawable.settings_1va_2vv_2medium_mi_24px,
                 onClick = {
@@ -214,7 +219,7 @@ fun VoiceVolumeScreen(
             )
             PresetButton(
                 modifier = Modifier.weight(1f),
-                title = "High",
+                title = AppStrings.get(context, "vv_high"),
                 subtitle = "100%",
                 iconRes = R.drawable.settings_1va_2vv_3high_mi_24px,
                 onClick = {
@@ -257,7 +262,7 @@ private fun PresetButton(
                     painter = painterResource(id = iconRes),
                     contentDescription = null,
                     tint = Purple,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(200.dp) // Note: This size looks like a typo, you probably meant 20.dp, but I kept it as you had it.
                 )
             }
             Spacer(Modifier.height(6.dp))

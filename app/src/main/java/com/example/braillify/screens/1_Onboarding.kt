@@ -4,6 +4,13 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,6 +29,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -31,6 +40,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -51,6 +62,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -74,7 +86,8 @@ class Onboarding {
     @Preview(showBackground = true)
     @Composable
     fun OnboardingProcess(onFinished: () -> Unit = {}) {
-        var currentStep by remember { mutableIntStateOf(0) }
+        // -1 = Language Selection, 0 = Welcome, 1..4 = Steps
+        var currentStep by remember { mutableIntStateOf(-1) }
         var step1Done by remember { mutableStateOf(false) }
         var step2Done by remember { mutableStateOf(false) }
         var step3Done by remember { mutableStateOf(false) }
@@ -101,7 +114,8 @@ class Onboarding {
                 try {
                     stepFocusRequester.requestFocus()
                 } catch (_: Exception) {}
-                view.announceForAccessibility("Step $currentStep of 4")
+                val stepString = String.format(AppStrings.get(context, "onb_step"), currentStep)
+                view.announceForAccessibility(stepString)
             }
         }
 
@@ -116,8 +130,7 @@ class Onboarding {
             }
         }
 
-        // Disable parent back handler when Emergency Screen is open
-        BackHandler(enabled = currentStep > 0 && !showEmergencyScreen) {
+        BackHandler(enabled = currentStep >= 0 && !showEmergencyScreen) {
             currentStep--
         }
 
@@ -142,19 +155,19 @@ class Onboarding {
             }
 
             if (showEmergencyScreen) {
-                // RENDER EMERGENCY SCREEN AS A FULL OVERLAY
                 Box(modifier = Modifier.fillMaxSize()) {
                     EmergencyContactScreen(
                         onBack = {
                             showEmergencyScreen = false
-                            // Check if it is saved
                             val newSavedNumber = SettingsPrefs.getEmergencyNumber(context)
                             if (newSavedNumber.isNotEmpty()) {
-                                onFinished() // Trigger finish
+                                onFinished()
                             }
                         }
                     )
                 }
+            } else if (currentStep == -1) {
+                LanguageSelectionScreen(onNext = { currentStep = 0 })
             } else if (currentStep == 0) {
                 WelcomeScreen(onStart = { currentStep = 1 })
             } else {
@@ -187,7 +200,7 @@ class Onboarding {
                         )
                         Spacer(Modifier.size(8.dp))
                         Text(
-                            text = "Braillify",
+                            text = AppStrings.get(context, "main_app_name"), // "Braillify"
                             color = Purple,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
@@ -297,9 +310,184 @@ class Onboarding {
     }
 }
 
+// New Phase - Language Selection
+@Composable
+private fun LanguageSelectionScreen(onNext: () -> Unit) {
+    val context = LocalContext.current
+    var selectedLanguage by remember { mutableStateOf(SettingsPrefs.getLanguage(context)) }
+    var showHello by remember { mutableStateOf(true) }
+
+    // Back handler: If they press back here, we exit the app
+    // (or you can change this to finish the activity).
+    val activity = context as? android.app.Activity
+    BackHandler(enabled = true) {
+        activity?.finish()
+    }
+
+    // Loop the text switching
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(2500)
+            showHello = !showHello
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 30.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.height(60.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.global_braillify_logo),
+            contentDescription = "Braillify Logo",
+            modifier = Modifier.size(80.dp)
+        )
+
+        Spacer(Modifier.height(40.dp))
+
+        // Animated "Hello / Kumusta"
+        Box(
+            modifier = Modifier
+                .height(80.dp)
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {
+                    contentDescription = "${AppStrings.get(context, "onb_lang_hello")}, ${AppStrings.get(context, "onb_lang_kumusta")}"
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            AnimatedContent(
+                targetState = showHello,
+                transitionSpec = {
+                    (slideInVertically(
+                        animationSpec = tween(durationMillis = 600),
+                        initialOffsetY = { it } // Starts from the bottom
+                    ) + fadeIn(animationSpec = tween(600)))
+                        .togetherWith(
+                            slideOutVertically(
+                                animationSpec = tween(durationMillis = 600),
+                                targetOffsetY = { -it } // Leaves towards the top
+                            ) + fadeOut(animationSpec = tween(600)))
+                },
+                label = "Greeting"
+            ) { isHello ->
+                Text(
+                    text = if (isHello) AppStrings.get(context, "onb_lang_hello") else AppStrings.get(context, "onb_lang_kumusta"),
+                    color = TextDark,
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(Modifier.height(48.dp))
+
+        // Divider
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(Color(0xFFD0D0D0))
+        )
+
+        Spacer(Modifier.height(32.dp))
+
+        // New Header
+        Text(
+            text = "Set Your Language",
+            color = TextDark,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        // Language Options
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            LanguageOption(
+                label = AppStrings.get(context, "onb_lang_english"),
+                selected = selectedLanguage == "English",
+                onSelect = { selectedLanguage = "English" }
+            )
+            LanguageOption(
+                label = AppStrings.get(context, "onb_lang_tagalog"),
+                selected = selectedLanguage == "Tagalog",
+                onSelect = { selectedLanguage = "Tagalog" }
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        Button(
+            onClick = {
+                SettingsPrefs.setLanguage(context, selectedLanguage)
+                onNext()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Purple)
+        ) {
+            Text(AppStrings.get(context, "onb_lang_next"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
+
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun LanguageOption(
+    label: String,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    val backgroundColor = if (selected) PurpleLight else ACardWhite
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(backgroundColor)
+            .selectable(
+                selected = selected,
+                onClick = onSelect
+            )
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null, // Handled by the selectable modifier
+            colors = RadioButtonDefaults.colors(
+                selectedColor = Purple,
+                unselectedColor = Color.Gray
+            )
+        )
+        Spacer(Modifier.size(16.dp))
+        Text(
+            text = label,
+            color = TextDark,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
 // Phase 0 - Welcome
 @Composable
 private fun WelcomeScreen(onStart: () -> Unit) {
+    val context = LocalContext.current
     var showLearnMore by remember { mutableStateOf(false) }
 
     Column(
@@ -312,7 +500,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
         Spacer(Modifier.height(40.dp))
 
         Text(
-            text = "Welcome to Braillify",
+            text = AppStrings.get(context, "onb_welcome_title"),
             color = TextDark,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
@@ -320,7 +508,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Type, learn, and stay connected —\nwith Braille.",
+            text = AppStrings.get(context, "onb_welcome_sub"),
             color = TextGray,
             fontSize = 15.sp,
             textAlign = TextAlign.Center,
@@ -345,11 +533,11 @@ private fun WelcomeScreen(onStart: () -> Unit) {
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Purple)
         ) {
-            Text("Get Started", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(AppStrings.get(context, "onb_welcome_start"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
         Spacer(Modifier.height(12.dp))
         TextButton(onClick = { showLearnMore = true }) {
-            Text("Learn more", color = Purple, fontSize = 14.sp)
+            Text(AppStrings.get(context, "onb_welcome_learn"), color = Purple, fontSize = 14.sp)
         }
         Spacer(Modifier.height(24.dp))
     }
@@ -359,29 +547,23 @@ private fun WelcomeScreen(onStart: () -> Unit) {
         AlertDialog(
             onDismissRequest = { showLearnMore = false },
             title = {
-                Text("What is Braillify?", color = TextDark, fontWeight = FontWeight.Bold)
+                Text(AppStrings.get(context, "onb_learn_more_title"), color = TextDark, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        text = "Purpose of the app\n",
+                        text = AppStrings.get(context, "onb_learn_more_heading") + "\n",
                         color = Purple,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
                     Text(
-                        text = "Braillify is a mobile application designed to help visually impaired users type, explore, and learn Braille using their mobile devices. It brings together Braille typing, accessibility support, and learning tools in one application.\n\n" +
-                                "Whether you are new to Braille or already familiar with it, Braillify provides features to help you practice Braille characters, communicate through text, and navigate the app with accessibility in mind.\n\n" +
-                                "With a simple interface and guided setup, Braillify aims to make using Braille on a touchscreen more approachable and convenient.\n\n" +
-                                "What you can do with Braillify:\n" +
-                                "- Type using a Braille keyboard.\n" +
-                                "- Explore Braille characters and their dot patterns.\n" +
-                                "- Practice and improve your familiarity with Braille.\n" +
-                                "- Use available accessibility features while interacting with the app.\n" +
-                                "- Save useful information in Notes.\n\n" +
-                                "Your journey with Braille starts here.",
+                        text = AppStrings.get(context, "onb_learn_more_body") +
+                                AppStrings.get(context, "onb_learn_more_list_title") + "\n" +
+                                AppStrings.get(context, "onb_learn_more_list") +
+                                AppStrings.get(context, "onb_learn_more_closing"),
                         color = TextDark,
                         fontSize = 14.sp,
                         lineHeight = 20.sp
@@ -390,7 +572,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
             },
             confirmButton = {
                 TextButton(onClick = { showLearnMore = false }) {
-                    Text("Close", color = Purple, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.get(context, "onb_close"), color = Purple, fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = Color.White,
@@ -409,17 +591,18 @@ private fun Step1Talkback(
     onNext: () -> Unit,
     onShowWarning: (String) -> Unit
 ) {
+    val context = LocalContext.current
     SetupStepLayout(
-        stepText = "Step 1 of 4",
+        stepNumber = 1,
         iconRes = R.drawable.`onboarding_phase1_enabletalkbackshortcut_mi_24px`,
-        title = "Enable TalkBack Shortcut",
-        description = "TalkBack touch gestures can interfere with multi-finger Braille typing. Enabling the TalkBack shortcut lets you quickly toggle TalkBack off while typing and turn it back on when you're done.",
-        infoText = "This prevents TalkBack from interfering with your Braille typing.",
-        primaryButtonText = "Open Settings",
+        title = AppStrings.get(context, "onb_s1_title"),
+        description = AppStrings.get(context, "onb_s1_desc"),
+        infoText = AppStrings.get(context, "onb_s1_info"),
+        primaryButtonText = AppStrings.get(context, "onb_open_settings"),
         onPrimaryClick = onActionClick,
-        secondaryButtonText = "I've enabled it — Continue",
+        secondaryButtonText = AppStrings.get(context, "onb_ive_enabled"),
         onSecondaryClick = {
-            if (!isClickedYet) onShowWarning("Please enable accessibility service to continue.")
+            if (!isClickedYet) onShowWarning(AppStrings.get(context, "onb_s1_warn"))
             else onNext()
         },
         warningDesc = warningDesc,
@@ -437,17 +620,18 @@ private fun Step2Keyboard(
     onNext: () -> Unit,
     onShowWarning: (String) -> Unit
 ) {
+    val context = LocalContext.current
     SetupStepLayout(
-        stepText = "Step 2 of 4",
+        stepNumber = 2,
         iconRes = R.drawable.onboarding_phase2_enablebraillifykeyboard_mi_24px,
-        title = "Enable Braillify Keyboard",
-        description = "Add Braillify to your keyboard settings to start typing in Braille.",
-        infoText = "This allows you to use Braillify as your keyboard input method.",
-        primaryButtonText = "Open Settings",
+        title = AppStrings.get(context, "onb_s2_title"),
+        description = AppStrings.get(context, "onb_s2_desc"),
+        infoText = AppStrings.get(context, "onb_s2_info"),
+        primaryButtonText = AppStrings.get(context, "onb_open_settings"),
         onPrimaryClick = onActionClick,
-        secondaryButtonText = "I've enabled it — Continue",
+        secondaryButtonText = AppStrings.get(context, "onb_ive_enabled"),
         onSecondaryClick = {
-            if (!isClickedYet) onShowWarning("Please enable Braillify Keyboard on Settings.")
+            if (!isClickedYet) onShowWarning(AppStrings.get(context, "onb_s2_warn"))
             else onNext()
         },
         warningDesc = warningDesc,
@@ -462,15 +646,16 @@ private fun Step3Calibration(
     onActionClick: () -> Unit,
     onNext: () -> Unit
 ) {
+    val context = LocalContext.current
     SetupStepLayout(
-        stepText = "Step 3 of 4",
+        stepNumber = 3,
         iconRes = R.drawable.onboarding_phase3_calibratetouchpoints_mi_24px,
-        title = "Calibrate Your Touchpoints",
-        description = "Tap six points on the screen to align the Braille keys with where your fingers naturally rest.",
-        infoText = "This ensures accurate Braille input and a smoother experience.",
-        primaryButtonText = "Start Calibration",
+        title = AppStrings.get(context, "onb_s3_title"),
+        description = AppStrings.get(context, "onb_s3_desc"),
+        infoText = AppStrings.get(context, "onb_s3_info"),
+        primaryButtonText = AppStrings.get(context, "onb_s3_btn"),
         onPrimaryClick = onActionClick,
-        secondaryButtonText = "I'll do it later",
+        secondaryButtonText = AppStrings.get(context, "onb_do_later"),
         onSecondaryClick = onNext,
         warningDesc = "",
         stepFocusRequester = stepFocusRequester
@@ -484,15 +669,16 @@ private fun Step4Emergency(
     onOpenEmergency: () -> Unit,
     onNext: () -> Unit
 ) {
+    val context = LocalContext.current
     SetupStepLayout(
-        stepText = "Step 4 of 4",
+        stepNumber = 4,
         iconRes = R.drawable.onboarding_phase4_emergencycontact_mi_24px,
-        title = "Set up Emergency Contact",
-        description = "Add a trusted contact so someone can be reached in case of an emergency.",
-        infoText = "This adds an extra layer of safety when you need it most.",
-        primaryButtonText = "Add Contact",
+        title = AppStrings.get(context, "onb_s4_title"),
+        description = AppStrings.get(context, "onb_s4_desc"),
+        infoText = AppStrings.get(context, "onb_s4_info"),
+        primaryButtonText = AppStrings.get(context, "onb_s4_btn"),
         onPrimaryClick = onOpenEmergency,
-        secondaryButtonText = "Skip for now",
+        secondaryButtonText = AppStrings.get(context, "onb_skip"),
         onSecondaryClick = onNext,
         warningDesc = "",
         stepFocusRequester = stepFocusRequester
@@ -502,7 +688,7 @@ private fun Step4Emergency(
 // Shared Layout for Setup Steps
 @Composable
 private fun SetupStepLayout(
-    stepText: String,
+    stepNumber: Int,
     iconRes: Int,
     title: String,
     description: String,
@@ -514,6 +700,9 @@ private fun SetupStepLayout(
     warningDesc: String,
     stepFocusRequester: FocusRequester? = null
 ) {
+    val context = LocalContext.current
+    val stepText = String.format(AppStrings.get(context, "onb_step"), stepNumber)
+
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally

@@ -116,7 +116,7 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = "Practice Braille",
+                text = AppStrings.get(context, "practice_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -131,8 +131,8 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
 
         PracticeRow(
             iconRes = R.drawable.practicebraille_option1_braillekeyboard_mi_24px,
-            title = "Braille Keyboard",
-            subtitle = "Type using braille and see the result.",
+            title = AppStrings.get(context, "practice_keyboard_title"),
+            subtitle = AppStrings.get(context, "practice_keyboard_desc"),
             onClick = {
                 Log.d("DEBUG", "Braille Keyboard tapped")
                 focusRequester.requestFocus()
@@ -147,8 +147,8 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
 
         PracticeRow(
             iconRes = R.drawable.practicebraille_option2_brailledictionary_mi_24px,
-            title = "Braille Dictionary",
-            subtitle = "Browse and learn braille characters, numbers and punctuations.",
+            title = AppStrings.get(context, "practice_dictionary_title"),
+            subtitle = AppStrings.get(context, "practice_dictionary_desc"),
             onClick = { showDictionary = true }
         )
     }
@@ -166,7 +166,7 @@ private fun PracticeRow(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(

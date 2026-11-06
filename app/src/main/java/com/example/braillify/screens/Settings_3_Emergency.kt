@@ -121,7 +121,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 )
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Safety Feature",
+                    text = AppStrings.get(context, "sos_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -162,14 +162,14 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Stay Safe",
+                    text = AppStrings.get(context, "sos_hero_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Quickly call for help by using a special gesture while typing in Braillify.",
+                    text = AppStrings.get(context, "sos_hero_desc"),
                     color = TextGray,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -183,7 +183,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
         // Emergency Contact
         SOSRow(
             iconRes = R.drawable.settings_3emergency_2_0emergencycontact_mi_24px,
-            title = "Emergency Contact",
+            title = AppStrings.get(context, "sos_contact_row"),
             subtitle = savedNumber,
             onClick = { showEmergencyContact = true }
         )
@@ -193,7 +193,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
         // Safety Gesture row
         SOSRow(
             iconRes = R.drawable.settings_3emergency_3safetygesture_mi_24px,
-            title = "Safety Gesture",
+            title = AppStrings.get(context, "sos_gesture_row"),
             subtitle = savedGesture,
             onClick = { showSOSGesture = true }
         )
@@ -229,14 +229,14 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 Spacer(Modifier.size(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Enable Safety Gesture",
+                        text = AppStrings.get(context, "sos_enable"),
                         color = TextDark,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "Allow Safety Gesture to work while typing",
+                        text = AppStrings.get(context, "sos_enable_sub"),
                         color = TextGray,
                         fontSize = 12.sp
                     )
@@ -282,7 +282,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.size(12.dp))
                 Text(
-                    text = "When enabled, you can trigger Safety Gesture with the selected gesture while using the Braillify keyboard.",
+                    text = AppStrings.get(context, "sos_info"),
                     color = TextDark,
                     fontSize = 13.sp,
                     lineHeight = 18.sp

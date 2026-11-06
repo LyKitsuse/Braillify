@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,13 +51,13 @@ fun VoiceSpeedScreen(
     initialSpeed: String = "Normal",
     onSpeedChanged: (String) -> Unit = {}
 ) {
-    val options = listOf(
-        "Slow" to "A slow-paced voice speed",
-        "Normal" to "Default speed",
-        "Fast" to "A fast-paced voice speed",
-        "Very Fast" to "A very fast-paced voice speed"
-    )
-    var selected by remember { mutableStateOf(initialSpeed) }
+    val context = LocalContext.current
+
+    // We store the English string in prefs so the logic remains consistent
+    // but we display the translated version in the list and hero card.
+    val optionsRaw = listOf("Slow", "Normal", "Fast", "Very Fast")
+
+    var selectedRaw by remember { mutableStateOf(initialSpeed) }
 
     BackHandler(enabled = true) { onBack() }
 
@@ -74,7 +75,6 @@ fun VoiceSpeedScreen(
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Back Button
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -86,10 +86,7 @@ fun VoiceSpeedScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Centered Icon + Text
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     painter = painterResource(id = R.drawable.settings_1va_1vs_icon_si_24px),
                     contentDescription = null,
@@ -98,7 +95,7 @@ fun VoiceSpeedScreen(
                 )
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Voice Speed",
+                    text = AppStrings.get(context, "vs_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -107,7 +104,6 @@ fun VoiceSpeedScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // Empty space to balance the back button so the middle stays centered
             Spacer(Modifier.size(32.dp))
         }
 
@@ -134,8 +130,7 @@ fun VoiceSpeedScreen(
                         .background(PurpleLight, RoundedCornerShape(28.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Dynamic Icon based on selection
-                    val mainIcon = when (selected) {
+                    val mainIcon = when (selectedRaw) {
                         "Slow"      -> R.drawable.settings_1va_2vs_1slow_mi_24px
                         "Normal"    -> R.drawable.settings_1va_2vs_2normal_mi_24px
                         "Fast"      -> R.drawable.settings_1va_2vs_3fast_mi_24px
@@ -151,20 +146,31 @@ fun VoiceSpeedScreen(
                     )
                 }
                 Spacer(Modifier.height(12.dp))
+
+                // Display translated title
+                val displayTitle = when (selectedRaw) {
+                    "Slow"      -> AppStrings.get(context, "vs_slow")
+                    "Normal"    -> AppStrings.get(context, "vs_normal")
+                    "Fast"      -> AppStrings.get(context, "vs_fast")
+                    "Very Fast" -> AppStrings.get(context, "vs_veryfast")
+                    else        -> AppStrings.get(context, "vs_normal")
+                }
                 Text(
-                    text = selected,
+                    text = displayTitle,
                     color = TextDark,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(6.dp))
+
+                // Display translated description
                 Text(
-                    text = when (selected) {
-                        "Slow"      -> "A slower, relaxed pace for careful listening."
-                        "Normal"    -> "Balanced speed for clear and comfortable listening."
-                        "Fast"      -> "A quicker pace for faster reading."
-                        "Very Fast" -> "Maximum speed for experienced users."
-                        else        -> "Balanced speed for clear and comfortable listening."
+                    text = when (selectedRaw) {
+                        "Slow"      -> AppStrings.get(context, "vs_slow_hero_desc")
+                        "Normal"    -> AppStrings.get(context, "vs_normal_hero_desc")
+                        "Fast"      -> AppStrings.get(context, "vs_fast_hero_desc")
+                        "Very Fast" -> AppStrings.get(context, "vs_veryfast_hero_desc")
+                        else        -> AppStrings.get(context, "vs_normal_hero_desc")
                     },
                     color = TextGray,
                     fontSize = 13.sp,
@@ -175,14 +181,29 @@ fun VoiceSpeedScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        options.forEach { (label, sub) ->
+        optionsRaw.forEach { rawLabel ->
+            val displayTitle = when (rawLabel) {
+                "Slow"      -> AppStrings.get(context, "vs_slow")
+                "Normal"    -> AppStrings.get(context, "vs_normal")
+                "Fast"      -> AppStrings.get(context, "vs_fast")
+                "Very Fast" -> AppStrings.get(context, "vs_veryfast")
+                else        -> rawLabel
+            }
+            val displaySub = when (rawLabel) {
+                "Slow"      -> AppStrings.get(context, "vs_slow_desc")
+                "Normal"    -> AppStrings.get(context, "vs_normal_desc")
+                "Fast"      -> AppStrings.get(context, "vs_fast_desc")
+                "Very Fast" -> AppStrings.get(context, "vs_veryfast_desc")
+                else        -> ""
+            }
+
             SpeedOptionRow(
-                title = label,
-                subtitle = sub,
-                selected = selected == label,
+                title = displayTitle,
+                subtitle = displaySub,
+                selected = selectedRaw == rawLabel,
                 onClick = {
-                    selected = label
-                    onSpeedChanged(label)
+                    selectedRaw = rawLabel
+                    onSpeedChanged(rawLabel)
                 }
             )
             Spacer(Modifier.height(10.dp))

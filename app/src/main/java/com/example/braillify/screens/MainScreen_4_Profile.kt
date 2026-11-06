@@ -106,7 +106,7 @@ fun ProfileScreen(onBack: () -> Unit = {}) {
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = TextDark, fontSize = 28.sp,modifier = Modifier.semantics {
+                Text(text = "‹", color = TextDark, fontSize = 28.sp, modifier = Modifier.semantics {
                     contentDescription = "Back Button"
                 })
             }
@@ -114,7 +114,7 @@ fun ProfileScreen(onBack: () -> Unit = {}) {
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = "Profile",
+                text = AppStrings.get(context, "profile_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -133,7 +133,7 @@ fun ProfileScreen(onBack: () -> Unit = {}) {
             val isActive = (profile.id == activeProfileId)
             ProfileRow(
                 title = profile.name,
-                subtitle = if (isActive) "Active" else "Tap to activate",
+                subtitle = if (isActive) AppStrings.get(context, "profile_active") else AppStrings.get(context, "profile_tap_to_activate"),
                 isActive = isActive,
                 canDelete = (!isActive && profiles.size > 1),
                 onDelete = {
@@ -155,8 +155,8 @@ fun ProfileScreen(onBack: () -> Unit = {}) {
 
         // Add Profile (Automatically defaults to "Profile x" where x is the number and starts calibration)
         ProfileRow(
-            title = "Add Profile",
-            subtitle = "Create and calibrate new profile",
+            title = AppStrings.get(context, "profile_add_title"),
+            subtitle = AppStrings.get(context, "profile_add_sub"),
             isAdd = true,
             onClick = {
                 var nextNum = profiles.size + 1

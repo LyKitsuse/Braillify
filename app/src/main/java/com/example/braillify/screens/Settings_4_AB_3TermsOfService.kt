@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,8 +50,11 @@ private data class TermsItem(
     val preview: String,
     val body: String
 )
+
 @Composable
 fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +62,6 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -78,7 +81,7 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Terms of Service",
+                    text = AppStrings.get(context, "tos_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -121,14 +124,14 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Terms of Service",
+                    text = AppStrings.get(context, "tos_hero_title"),
                     color = TextDark,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Please review these terms to understand the rules and conditions for using Braillify.",
+                    text = AppStrings.get(context, "tos_hero_desc"),
                     color = TextGray,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -142,29 +145,21 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
         val terms = listOf(
             TermsItem(
                 index = "1.",
-                title = "Acceptance of Terms",
-                preview = "By using Braillify, you agree to follow these Terms of Service.",
-                body = "By accessing or using Braillify, you acknowledge that you have read, " +
-                        "understood, and agreed to these Terms of Service. If you do not agree " +
-                        "with these terms, please discontinue use of the application."
+                title = AppStrings.get(context, "tos_1_title"),
+                preview = AppStrings.get(context, "tos_1_preview"),
+                body = AppStrings.get(context, "tos_1_body")
             ),
             TermsItem(
                 index = "2.",
-                title = "Use of the App",
-                preview = "Learn about the appropriate use of Braillify and its features.",
-                body = "Braillify is intended to provide accessible Braille-related learning and " +
-                        "input features. Users are expected to use the application responsibly and " +
-                        "only for its intended purposes. Do not attempt to misuse, damage, or " +
-                        "interfere with the application's functionality."
+                title = AppStrings.get(context, "tos_2_title"),
+                preview = AppStrings.get(context, "tos_2_preview"),
+                body = AppStrings.get(context, "tos_2_body")
             ),
             TermsItem(
                 index = "3.",
-                title = "Intellectual Property",
-                preview = "Information about Braillify's content, design, and intellectual property.",
-                body = "The Braillify name, design, interface, content, and other original materials " +
-                        "are the property of the Braillify development team unless otherwise stated. " +
-                        "These materials may not be copied, modified, or distributed without " +
-                        "appropriate permission."
+                title = AppStrings.get(context, "tos_3_title"),
+                preview = AppStrings.get(context, "tos_3_preview"),
+                body = AppStrings.get(context, "tos_3_body")
             )
         )
 
@@ -195,7 +190,7 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                 },
                 confirmButton = {
                     TextButton(onClick = { selectedTerm = null }) {
-                        Text(text = "Close", color = Purple, fontWeight = FontWeight.Bold)
+                        Text(text = AppStrings.get(context, "close"), color = Purple, fontWeight = FontWeight.Bold)
                     }
                 },
                 containerColor = Color.White,

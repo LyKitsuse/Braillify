@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -104,14 +105,11 @@ private val punctuations = listOf(
     BrailleEntry("\"", setOf(3,5,6))
 )
 
-private enum class Tab(val label: String) {
-    ALPHABETS("Alphabets"),
-    DIGITS("Digits"),
-    PUNCTUATIONS("Punctuations")
-}
+private enum class Tab { ALPHABETS, DIGITS, PUNCTUATIONS }
 
 @Composable
 fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
     var selectedTab by remember { mutableStateOf(Tab.ALPHABETS) }
     var selectedEntry by remember { mutableStateOf<BrailleEntry?>(null) }
 
@@ -119,9 +117,9 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
         BrailleEntryDetailScreen(
             entry = entry,
             category = when (selectedTab) {
-                Tab.ALPHABETS -> "Letter"
-                Tab.DIGITS -> "Digit"
-                Tab.PUNCTUATIONS -> "Symbol"
+                Tab.ALPHABETS -> AppStrings.get(context, "dict_category_letter")
+                Tab.DIGITS -> AppStrings.get(context, "dict_category_digit")
+                Tab.PUNCTUATIONS -> AppStrings.get(context, "dict_category_symbol")
             },
             onBack = { selectedEntry = null }
         )
@@ -154,7 +152,7 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
             }
             Spacer(Modifier.size(8.dp))
             Text(
-                text = "Braille Dictionary",
+                text = AppStrings.get(context, "dict_title"),
                 color = DictTextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -168,8 +166,13 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
             horizontalArrangement = Arrangement.Center
         ) {
             Tab.entries.forEach { tab ->
+                val displayLabel = when(tab) {
+                    Tab.ALPHABETS -> AppStrings.get(context, "dict_tab_alphabets")
+                    Tab.DIGITS -> AppStrings.get(context, "dict_tab_digits")
+                    Tab.PUNCTUATIONS -> AppStrings.get(context, "dict_tab_punctuations")
+                }
                 TabPill(
-                    label = tab.label,
+                    label = displayLabel,
                     selected = selectedTab == tab,
                     onClick = { selectedTab = tab }
                 )
@@ -180,9 +183,9 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
         Spacer(Modifier.height(20.dp))
 
         val (title, items) = when (selectedTab) {
-            Tab.ALPHABETS -> "Alphabets (A–Z)" to alphabet
-            Tab.DIGITS -> "Digits (0–9)" to digits
-            Tab.PUNCTUATIONS -> "Punctuations" to punctuations
+            Tab.ALPHABETS -> AppStrings.get(context, "dict_section_alphabets") to alphabet
+            Tab.DIGITS -> AppStrings.get(context, "dict_section_digits") to digits
+            Tab.PUNCTUATIONS -> AppStrings.get(context, "dict_section_punctuations") to punctuations
         }
 
         Row(
@@ -198,7 +201,7 @@ fun BrailleDictionaryScreen(onBack: () -> Unit = {}) {
                 modifier = Modifier.semantics { hideFromAccessibility() }
             )
             Text(
-                text = "${items.size} characters",
+                text = "${items.size} ${AppStrings.get(context, "dict_chars_count")}",
                 color = DictTextGray,
                 fontSize = 13.sp,
                 modifier = Modifier.semantics {
@@ -305,7 +308,6 @@ internal fun BrailleCell(
     dotSize: Dp = 6.dp,
     gap: Dp = 5.dp
 ) {
-
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(gap),

@@ -2,6 +2,11 @@ package com.example.braillify.screens
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
@@ -76,7 +82,6 @@ fun SettingsScreen(
         }
     }
 
-    // Load once from prefs; the lambda runs only on first composition
     var voiceSpeed by remember { mutableStateOf(SettingsPrefs.getVoiceSpeed(context)) }
     var voiceVolume by remember { mutableFloatStateOf(SettingsPrefs.getVoiceVolume(context)) }
 
@@ -153,149 +158,196 @@ private fun SettingsMain(
     var showExitDialog by remember { mutableStateOf(false) }
     var showInputModeDialog by remember { mutableStateOf(false) }
 
-    // Load saved language
     var currentLanguage by remember { mutableStateOf(SettingsPrefs.getLanguage(context)) }
     var showLanguageDialog by remember { mutableStateOf(false) }
 
-    Column(
+    // Sticky header
+    val scrollState = rememberScrollState()
+    val isScrolled = scrollState.value > 80
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-        // Header
-        Row(
+        // Main Scrollable Content
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clickable { onBack() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = "‹", color = TextDark, fontSize = 28.sp, modifier = Modifier.semantics {
-                    contentDescription = "Back Button"
-                })
-            }
-            Spacer(Modifier.size(8.dp))
-            Text(
-                text = "Settings",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-        SectionTitle("Voice Assistance")
-        Spacer(Modifier.height(8.dp))
-
-        SettingsRow(
-            title = "Voice Speed",
-            subtitle = voiceSpeed,
-            onClick = onVoiceSpeed
-        )
-        Spacer(Modifier.height(10.dp))
-        SettingsRow(
-            title = "Voice Volume",
-            subtitle = "${(voiceVolume * 100).toInt()}%",
-            onClick = onVoiceVolume
-        )
-
-        Spacer(Modifier.height(24.dp))
-        SectionTitle("Keyboard Preferences")
-        Spacer(Modifier.height(8.dp))
-
-        SwitchRow(
-            title = "Landscape Typing Preference",
-            subtitle = "Effective even in portrait",
-            checked = landscapeTyping,
-            onCheckedChange = onLandscapeTypingChanged
-        )
-
-        Spacer(Modifier.height(10.dp))
-
-        SettingsRow(
-            title = "Input Mode",
-            subtitle = if (sequentialMode) "Sequential" else "Simultaneous",
-            onClick = {
-                Log.d("DEBUG", "Input Mode clicked, setting dialog true")
-                showInputModeDialog = true
-            }
-        )
-
-        Spacer(Modifier.height(24.dp))
-        SectionTitle("Emergency")
-        Spacer(Modifier.height(8.dp))
-
-        SettingsRow(
-            title = "Safety Feature",
-            subtitle = "Emergency contact and safety gesture",
-            onClick = onSOSClick
-        )
-
-        Spacer(Modifier.height(24.dp))
-        SectionTitle("App Settings")
-        Spacer(Modifier.height(8.dp))
-
-        // Language
-        SettingsRow(
-            title = "Language",
-            subtitle = currentLanguage,
-            onClick = { showLanguageDialog = true }
-        )
-        Spacer(Modifier.height(10.dp))
-
-        // Haptic Feedback
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = RowBackground),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
+            // Regular Header
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onBack() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "‹",
+                        color = TextDark,
+                        fontSize = 28.sp,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Back Button"
+                        })
+                }
+                Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Haptic Feedback",
+                    text = AppStrings.get(context, "set_title"),
                     color = TextDark,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.graphicsLayer {
+
+                        alpha = if (isScrolled) 0f else 1f
+                    }
                 )
-                Switch(
-                    checked = hapticOn,
-                    onCheckedChange = onHapticChanged,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color.White,
-                        checkedTrackColor = Purple,
-                        uncheckedThumbColor = Color.White,
-                        uncheckedTrackColor = Color(0xFFBDBDBD)
+            }
+
+            Spacer(Modifier.height(16.dp))
+            SectionTitle(AppStrings.get(context, "set_voice_assistance"))
+            Spacer(Modifier.height(8.dp))
+
+            SettingsRow(
+                title = AppStrings.get(context, "set_voice_speed"),
+                subtitle = AppStrings.get(context, "vs_" + voiceSpeed.lowercase().replace(" ", "")),
+                onClick = onVoiceSpeed
+            )
+            Spacer(Modifier.height(10.dp))
+            SettingsRow(
+                title = AppStrings.get(context, "set_voice_volume"),
+                subtitle = "${(voiceVolume * 100).toInt()}%",
+                onClick = onVoiceVolume
+            )
+
+            Spacer(Modifier.height(24.dp))
+            SectionTitle(AppStrings.get(context, "set_keyboard_prefs"))
+            Spacer(Modifier.height(8.dp))
+
+            SwitchRow(
+                title = AppStrings.get(context, "set_landscape"),
+                subtitle = AppStrings.get(context, "set_landscape_desc"),
+                checked = landscapeTyping,
+                onCheckedChange = onLandscapeTypingChanged
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            SettingsRow(
+                title = AppStrings.get(context, "set_input_mode"),
+                subtitle = if (sequentialMode) AppStrings.get(
+                    context,
+                    "set_input_sequential"
+                ) else AppStrings.get(context, "set_input_simultaneous"),
+                onClick = {
+                    Log.d("DEBUG", "Input Mode clicked, setting dialog true")
+                    showInputModeDialog = true
+                }
+            )
+
+            Spacer(Modifier.height(24.dp))
+            SectionTitle(AppStrings.get(context, "set_emergency"))
+            Spacer(Modifier.height(8.dp))
+
+            SettingsRow(
+                title = AppStrings.get(context, "set_safety_feature"),
+                subtitle = AppStrings.get(context, "set_safety_desc"),
+                onClick = onSOSClick
+            )
+
+            Spacer(Modifier.height(24.dp))
+            SectionTitle(AppStrings.get(context, "set_app_settings"))
+            Spacer(Modifier.height(8.dp))
+
+            // Language
+            SettingsRow(
+                title = AppStrings.get(context, "set_language"),
+                subtitle = if (currentLanguage == "Tagalog") AppStrings.get(
+                    context,
+                    "set_tagalog"
+                ) else AppStrings.get(context, "set_english"),
+                onClick = { showLanguageDialog = true }
+            )
+            Spacer(Modifier.height(10.dp))
+
+            // Haptic Feedback
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = RowBackground),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = AppStrings.get(context, "set_haptic"),
+                        color = TextDark,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
+                    Switch(
+                        checked = hapticOn,
+                        onCheckedChange = onHapticChanged,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Purple,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color(0xFFBDBDBD)
+                        )
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            SettingsRow(
+                title = AppStrings.get(context, "set_about"),
+                onClick = onAboutClick
+            )
+            Spacer(Modifier.height(10.dp))
+
+            SettingsRow(
+                title = AppStrings.get(context, "set_exit"),
+                trailingIconRes = R.drawable.settings_4ap_4_exit_24px,
+                onClick = { showExitDialog = true }
+            )
+
+        }
+
+        // Header
+        AnimatedVisibility(
+            visible = isScrolled,
+            enter = fadeIn() + slideInVertically(initialOffsetY = { -it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { -it }),
+            modifier = Modifier.align(Alignment.TopCenter)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Background.copy(alpha = 0.95f))
+                    .padding(top = 24.dp, bottom = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = AppStrings.get(context, "set_title"),
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
-
-        Spacer(Modifier.height(10.dp))
-
-        SettingsRow(
-            title = "About Braillify",
-            onClick = onAboutClick
-        )
-        Spacer(Modifier.height(10.dp))
-
-        SettingsRow(
-            title = "Exit Braillify",
-            trailingIconRes = R.drawable.settings_4ap_4_exit_24px,
-            onClick = { showExitDialog = true }
-        )
     }
 
     // Exit Dialog
@@ -304,14 +356,14 @@ private fun SettingsMain(
             onDismissRequest = { showExitDialog = false },
             title = {
                 Text(
-                    text = "Exit Braillify?",
+                    text = AppStrings.get(context, "dialog_exit_title"),
                     color = TextDark,
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = "Are you sure you want to exit the app?",
+                    text = AppStrings.get(context, "dialog_exit_desc"),
                     color = TextGray
                 )
             },
@@ -321,12 +373,12 @@ private fun SettingsMain(
                     Log.d("DEBUG", "Exit Braillify confirmed")
                     (context as? android.app.Activity)?.finish()
                 }) {
-                    Text(text = "Exit", color = Purple, fontWeight = FontWeight.Bold)
+                    Text(text = AppStrings.get(context, "dialog_exit_confirm"), color = Purple, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showExitDialog = false }) {
-                    Text(text = "Cancel", color = TextGray)
+                    Text(text = AppStrings.get(context, "dialog_cancel"), color = TextGray)
                 }
             },
             containerColor = Color.White,
@@ -340,7 +392,7 @@ private fun SettingsMain(
             onDismissRequest = { showInputModeDialog = false },
             title = {
                 Text(
-                    text = "Input Mode",
+                    text = AppStrings.get(context, "dialog_input_title"),
                     color = TextDark,
                     fontWeight = FontWeight.Bold
                 )
@@ -348,7 +400,7 @@ private fun SettingsMain(
             text = {
                 Column {
                     RadioOptionRow(
-                        label = "Simultaneous",
+                        label = AppStrings.get(context, "set_input_simultaneous"),
                         selected = !sequentialMode,
                         onClick = {
                             onSequentialModeChanged(false)
@@ -356,7 +408,7 @@ private fun SettingsMain(
                         }
                     )
                     RadioOptionRow(
-                        label = "Sequential",
+                        label = AppStrings.get(context, "set_input_sequential"),
                         selected = sequentialMode,
                         onClick = {
                             onSequentialModeChanged(true)
@@ -367,7 +419,7 @@ private fun SettingsMain(
             },
             confirmButton = {
                 TextButton(onClick = { showInputModeDialog = false }) {
-                    Text(text = "Cancel", color = TextGray)
+                    Text(text = AppStrings.get(context, "dialog_cancel"), color = TextGray)
                 }
             },
             containerColor = Color.White,
@@ -381,7 +433,7 @@ private fun SettingsMain(
             onDismissRequest = { showLanguageDialog = false },
             title = {
                 Text(
-                    text = "Select Language",
+                    text = AppStrings.get(context, "dialog_lang_title"),
                     color = TextDark,
                     fontWeight = FontWeight.Bold
                 )
@@ -389,20 +441,20 @@ private fun SettingsMain(
             text = {
                 Column {
                     RadioOptionRow(
-                        label = "English",
+                        label = AppStrings.get(context, "set_english"),
                         selected = currentLanguage == "English",
                         onClick = {
                             currentLanguage = "English"
-                            SettingsPrefs.setLanguage(context, "English") // Save to prefs
+                            SettingsPrefs.setLanguage(context, "English")
                             showLanguageDialog = false
                         }
                     )
                     RadioOptionRow(
-                        label = "Tagalog",
+                        label = AppStrings.get(context, "set_tagalog"),
                         selected = currentLanguage == "Tagalog",
                         onClick = {
                             currentLanguage = "Tagalog"
-                            SettingsPrefs.setLanguage(context, "Tagalog") // Save to prefs
+                            SettingsPrefs.setLanguage(context, "Tagalog")
                             showLanguageDialog = false
                         }
                     )
@@ -410,7 +462,7 @@ private fun SettingsMain(
             },
             confirmButton = {
                 TextButton(onClick = { showLanguageDialog = false }) {
-                    Text(text = "Cancel", color = TextGray)
+                    Text(text = AppStrings.get(context, "dialog_cancel"), color = TextGray)
                 }
             },
             containerColor = Color.White,

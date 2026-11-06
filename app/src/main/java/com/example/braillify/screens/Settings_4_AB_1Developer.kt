@@ -40,6 +40,8 @@ private val TextGray = Color(0xFF8A8A8A)
 
 @Composable
 fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -47,7 +49,7 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-
+        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -60,24 +62,23 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                     .clickable { onBack() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = "‹", color = TextDark, fontSize = 28.sp)
-            }
-            Spacer(Modifier.weight(1f))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "Developers",
+                    text = "‹",
                     color = TextDark,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 28.sp
                 )
             }
-
             Spacer(Modifier.weight(1f))
 
-            // Empty space to balance the back button
-            Spacer(Modifier.size(32.dp))
+            // Translated Text
+            Text(
+                text = AppStrings.get(context, "dev_title"),
+                color = TextDark,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.weight(1f))
         }
 
         // Team description card
@@ -108,15 +109,17 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.size(14.dp))
                 Column {
+                    // Translated Text
                     Text(
-                        text = "Development Team",
+                        text = AppStrings.get(context, "dev_team_title"),
                         color = TextDark,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(6.dp))
+                    // Translated Text
                     Text(
-                        text = "Meet the team behind Braillify. We are dedicated to creating an accessible, intuitive, and reliable tool that helps make digital Braille easier for everyone.",
+                        text = AppStrings.get(context, "dev_team_desc"),
                         color = TextGray,
                         fontSize = 12.sp,
                         lineHeight = 16.sp
@@ -128,18 +131,18 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
         Spacer(Modifier.height(16.dp))
 
         // Team members
-        TeamMemberRow(name = "Jam Russel M. Rosal")
+        TeamMemberRow(name = "Jam Russel M. Rosal", role = AppStrings.get(context, "dev_role"))
         Spacer(Modifier.height(12.dp))
-        TeamMemberRow(name = "Aizle Manalo")
+        TeamMemberRow(name = "Aizle Manalo", role = AppStrings.get(context, "dev_role"))
         Spacer(Modifier.height(12.dp))
-        TeamMemberRow(name = "Gabrielle Sebastian P. Orlanda")
+        TeamMemberRow(name = "Gabrielle Sebastian P. Orlanda", role = AppStrings.get(context, "dev_role"))
         Spacer(Modifier.height(12.dp))
-        TeamMemberRow(name = "John Arvin R. Toribio")
+        TeamMemberRow(name = "John Arvin R. Toribio", role = AppStrings.get(context, "dev_role"))
     }
 }
 
 @Composable
-private fun TeamMemberRow(name: String) {
+private fun TeamMemberRow(name: String, role: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -176,8 +179,9 @@ private fun TeamMemberRow(name: String) {
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(2.dp))
+                // Translated Text
                 Text(
-                    text = "Developer",
+                    text = role,
                     color = TextGray,
                     fontSize = 12.sp
                 )

@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -78,6 +79,8 @@ private fun AboutMain(
     onPrivacy: () -> Unit,
     onTerms: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,7 +115,7 @@ private fun AboutMain(
                 )
                 Spacer(Modifier.size(8.dp))
                 Text(
-                    text = "About Braillify",
+                    text = AppStrings.get(context, "about_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -139,14 +142,14 @@ private fun AboutMain(
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Braillify",
+                text = "Braillify", // Keep the app name as is
                 color = TextDark,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = "Version 1.0.0",
+                text = AppStrings.get(context, "about_version"),
                 color = TextGray,
                 fontSize = 13.sp
             )
@@ -156,9 +159,7 @@ private fun AboutMain(
 
         // Description
         Text(
-            text = "Braillify is a mobile application designed to help visually impaired users read " +
-                    "and write using Braille, with the support of voice assistance and machine learning " +
-                    "technology.",
+            text = AppStrings.get(context, "about_desc"),
             color = TextGray,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
@@ -172,22 +173,22 @@ private fun AboutMain(
 
         // Info rows
         InfoRow(
-            title = "Developer",
-            subtitle = "Meet the developers of Braillify",
+            title = AppStrings.get(context, "about_dev_row"),
+            subtitle = AppStrings.get(context, "about_dev_row_sub"),
             iconRes = R.drawable.settings_4ap_1_developer_mi_24px,
             onClick = onDevelopers
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
-            title = "Privacy Policy",
-            subtitle = "Learn how we protect your data.",
+            title = AppStrings.get(context, "about_privacy_row"),
+            subtitle = AppStrings.get(context, "about_privacy_row_sub"),
             iconRes = R.drawable.settings_4ap_2_privacypolicy_mi_24px,
             onClick = onPrivacy
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
-            title = "Terms of Service",
-            subtitle = "Read our terms and conditions.",
+            title = AppStrings.get(context, "about_terms_row"),
+            subtitle = AppStrings.get(context, "about_terms_row_sub"),
             iconRes = R.drawable.settings_4ap_3_termsofservice_mi_24px,
             onClick = onTerms
         )
