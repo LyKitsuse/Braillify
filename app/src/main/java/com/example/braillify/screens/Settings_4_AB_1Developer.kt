@@ -63,19 +63,21 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                 Text(text = "‹", color = TextDark, fontSize = 28.sp)
             }
             Spacer(Modifier.weight(1f))
-            Text(
-                text = "Developers",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = "Developers",
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.ad_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         // Team description card
@@ -98,7 +100,7 @@ fun AboutDeveloperScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ad_development_team_icon_24px),
+                        painter = painterResource(id = R.drawable.settings_4ap_ab_ad_1icon_mi_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(26.dp)
@@ -159,7 +161,7 @@ private fun TeamMemberRow(name: String) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ad_person_icon_24px),
+                    painter = painterResource(id = R.drawable.settings_4ap_ab_ad_2individual_mi_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(20.dp)

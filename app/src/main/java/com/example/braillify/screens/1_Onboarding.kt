@@ -181,7 +181,7 @@ class Onboarding {
                         }
                         Spacer(Modifier.weight(1f))
                         Image(
-                            painter = painterResource(id = R.drawable.braillify_logo),
+                            painter = painterResource(id = R.drawable.global_braillify_logo),
                             contentDescription = null,
                             modifier = Modifier.size(24.dp)
                         )
@@ -330,7 +330,7 @@ private fun WelcomeScreen(onStart: () -> Unit) {
         Spacer(Modifier.height(60.dp))
 
         Image(
-            painter = painterResource(id = R.drawable.braillify_logo),
+            painter = painterResource(id = R.drawable.global_braillify_logo),
             contentDescription = "Braillify Logo",
             modifier = Modifier.size(120.dp)
         )
@@ -411,7 +411,7 @@ private fun Step1Talkback(
 ) {
     SetupStepLayout(
         stepText = "Step 1 of 4",
-        iconRes = R.drawable.onb_accessibility_24px,
+        iconRes = R.drawable.`onboarding_phase1_enabletalkbackshortcut_mi_24px`,
         title = "Enable TalkBack Shortcut",
         description = "TalkBack touch gestures can interfere with multi-finger Braille typing. Enabling the TalkBack shortcut lets you quickly toggle TalkBack off while typing and turn it back on when you're done.",
         infoText = "This prevents TalkBack from interfering with your Braille typing.",
@@ -439,7 +439,7 @@ private fun Step2Keyboard(
 ) {
     SetupStepLayout(
         stepText = "Step 2 of 4",
-        iconRes = R.drawable.onb_keyboard_24px,
+        iconRes = R.drawable.onboarding_phase2_enablebraillifykeyboard_mi_24px,
         title = "Enable Braillify Keyboard",
         description = "Add Braillify to your keyboard settings to start typing in Braille.",
         infoText = "This allows you to use Braillify as your keyboard input method.",
@@ -464,7 +464,7 @@ private fun Step3Calibration(
 ) {
     SetupStepLayout(
         stepText = "Step 3 of 4",
-        iconRes = R.drawable.onb_touch_24px,
+        iconRes = R.drawable.onboarding_phase3_calibratetouchpoints_mi_24px,
         title = "Calibrate Your Touchpoints",
         description = "Tap six points on the screen to align the Braille keys with where your fingers naturally rest.",
         infoText = "This ensures accurate Braille input and a smoother experience.",
@@ -486,7 +486,7 @@ private fun Step4Emergency(
 ) {
     SetupStepLayout(
         stepText = "Step 4 of 4",
-        iconRes = R.drawable.onb_emergency_24px,
+        iconRes = R.drawable.onboarding_phase4_emergencycontact_mi_24px,
         title = "Set up Emergency Contact",
         description = "Add a trusted contact so someone can be reached in case of an emergency.",
         infoText = "This adds an extra layer of safety when you need it most.",
@@ -579,7 +579,7 @@ private fun SetupStepLayout(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                            painter = painterResource(id = R.drawable.global_info_icon_24px),
                             contentDescription = null,
                             tint = Purple,
                             modifier = Modifier.size(20.dp)

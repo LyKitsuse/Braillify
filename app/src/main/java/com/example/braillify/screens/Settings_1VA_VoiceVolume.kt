@@ -44,9 +44,9 @@ private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
 private fun volumeIconFor(volume: Float): Int = when {
-    volume <= 0.35f -> R.drawable.vv_volume_low_24px
-    volume <= 0.75f -> R.drawable.vv_volume_medium_24px
-    else -> R.drawable.vv_volume_high_24px
+    volume <= 0.35f -> R.drawable.settings_1va_2vv_1low_mi_24px
+    volume <= 0.75f -> R.drawable.settings_1va_2vv_2medium_mi_24px
+    else -> R.drawable.settings_1va_2vv_3high_mi_24px
 }
 
 @Composable
@@ -80,20 +80,29 @@ fun VoiceVolumeScreen(
             ) {
                 Text(text = "‹", color = TextDark, fontSize = 28.sp)
             }
+
             Spacer(Modifier.weight(1f))
-            Text(
-                text = "Voice Volume",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.settings_1va_2vv_1icon_si_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = "Voice Volume",
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.vv_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+
+            // back button space
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -148,7 +157,7 @@ fun VoiceVolumeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.vv_volume_low_24px),
+                painter = painterResource(id = R.drawable.settings_1va_2vv_1low_mi_24px),
                 contentDescription = "Low volume",
                 tint = Purple,
                 modifier = Modifier.size(24.dp)
@@ -169,7 +178,7 @@ fun VoiceVolumeScreen(
                 )
             )
             Icon(
-                painter = painterResource(id = R.drawable.vv_volume_high_24px),
+                painter = painterResource(id = R.drawable.settings_1va_2vv_3high_mi_24px),
                 contentDescription = "High volume",
                 tint = Purple,
                 modifier = Modifier.size(24.dp)
@@ -187,7 +196,7 @@ fun VoiceVolumeScreen(
                 modifier = Modifier.weight(1f),
                 title = "Low",
                 subtitle = "25%",
-                iconRes = R.drawable.vv_volume_low_24px,
+                iconRes = R.drawable.settings_1va_2vv_1low_mi_24px,
                 onClick = {
                     volume = 0.25f
                     onVolumeChanged(0.25f)
@@ -197,7 +206,7 @@ fun VoiceVolumeScreen(
                 modifier = Modifier.weight(1f),
                 title = "Medium",
                 subtitle = "50%",
-                iconRes = R.drawable.vv_volume_medium_24px,
+                iconRes = R.drawable.settings_1va_2vv_2medium_mi_24px,
                 onClick = {
                     volume = 0.50f
                     onVolumeChanged(0.50f)
@@ -207,7 +216,7 @@ fun VoiceVolumeScreen(
                 modifier = Modifier.weight(1f),
                 title = "High",
                 subtitle = "100%",
-                iconRes = R.drawable.vv_volume_high_24px,
+                iconRes = R.drawable.settings_1va_2vv_3high_mi_24px,
                 onClick = {
                     volume = 1.0f
                     onVolumeChanged(1.0f)

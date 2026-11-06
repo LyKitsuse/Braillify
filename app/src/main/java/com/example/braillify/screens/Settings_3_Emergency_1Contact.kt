@@ -111,13 +111,8 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.emergency_top_right_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -134,7 +129,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.contact_emergency_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_1emergencycontact_mi_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(36.dp)
@@ -183,7 +178,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.phone_number_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_2i_phonenumber_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(24.dp)
@@ -204,7 +199,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                     )
                 }
                 Icon(
-                    painter = painterResource(id = R.drawable.edit_pencil_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_2ipencil_24px),
                     contentDescription = "Edit Phone Number",
                     tint = Purple,
                     modifier = Modifier
@@ -256,7 +251,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                    painter = painterResource(id = R.drawable.global_info_icon_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(24.dp)

@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -104,21 +103,26 @@ private fun AboutMain(
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = "About Braillify",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.global_info_icon_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = "About Braillify",
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
-            Icon(
-                painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(24.dp))
@@ -129,7 +133,7 @@ private fun AboutMain(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.braillify_logo),
+                painter = painterResource(id = R.drawable.global_braillify_logo),
                 contentDescription = "Braillify Logo",
                 modifier = Modifier.size(72.dp)
             )
@@ -170,21 +174,21 @@ private fun AboutMain(
         InfoRow(
             title = "Developer",
             subtitle = "Meet the developers of Braillify",
-            iconRes = R.drawable.ab_developer_icon_24px,
+            iconRes = R.drawable.settings_4ap_1_developer_mi_24px,
             onClick = onDevelopers
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
             title = "Privacy Policy",
             subtitle = "Learn how we protect your data.",
-            iconRes = R.drawable.ab_privacy_policy_icon_24px,
+            iconRes = R.drawable.settings_4ap_2_privacypolicy_mi_24px,
             onClick = onPrivacy
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
             title = "Terms of Service",
             subtitle = "Read our terms and conditions.",
-            iconRes = R.drawable.ab_terms_of_service_24px,
+            iconRes = R.drawable.settings_4ap_3_termsofservice_mi_24px,
             onClick = onTerms
         )
     }

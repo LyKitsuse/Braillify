@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import com.example.braillify.R
 
 enum class NavTab(val label: String, val iconRes: Int) {
-    HOME("Home", R.drawable.nb_home_24px),
-    KEYBOARD("Keyboard", R.drawable.nb_keyboard_keys_24px),
-    SETTINGS("Settings", R.drawable.nb_settings_24px)
+    HOME("Home", R.drawable.navbar_1home_mi_24px),
+    KEYBOARD("Keyboard", R.drawable.navbar_2keyboard_mi_24px),
+    SETTINGS("Settings", R.drawable.navbar_3settings_mi_24px)
 }
 
 @Composable

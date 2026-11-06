@@ -76,4 +76,16 @@ object SettingsPrefs {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_SOS_GESTURE, value).apply()
     }
+
+    private const val KEY_LANGUAGE = "language"
+
+    fun getLanguage(context: Context): String =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_LANGUAGE, "English") ?: "English"
+
+    fun setLanguage(context: Context, value: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_LANGUAGE, value).apply()
+    }
+
 }

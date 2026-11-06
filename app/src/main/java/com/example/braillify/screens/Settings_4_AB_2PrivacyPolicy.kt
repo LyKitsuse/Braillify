@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -44,14 +43,15 @@ private val RowBackground = Color(0xFFEDEBF2)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
-private data class TermsItem(
+private data class PolicyItem(
     val index: String,
     val title: String,
     val preview: String,
     val body: String
 )
+
 @Composable
-fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
+fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -75,19 +75,21 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                 Text(text = "‹", color = TextDark, fontSize = 28.sp)
             }
             Spacer(Modifier.weight(1f))
-            Text(
-                text = "Terms of Service",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = "Privacy Policy",
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.ats_top_right_corner_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -112,7 +114,7 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ats_terms_of_service_hero_24px),
+                        painter = painterResource(id = R.drawable.settings_4ap_ab_pp_2icon_mi_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(28.dp)
@@ -120,14 +122,14 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Terms of Service",
+                    text = "Your Privacy Matters",
                     color = TextDark,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Please review these terms to understand the rules and conditions for using Braillify.",
+                    text = "Braillify is a mobile application designed to help visually impaired users read and write using Braille, with the support of voice assistance and machine learning technology.",
                     color = TextGray,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -138,50 +140,49 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
 
         Spacer(Modifier.height(16.dp))
 
-        val terms = listOf(
-            TermsItem(
+        val policies = listOf(
+            PolicyItem(
                 index = "1.",
-                title = "Acceptance of Terms",
-                preview = "By using Braillify, you agree to follow these Terms of Service.",
-                body = "By accessing or using Braillify, you acknowledge that you have read, " +
-                        "understood, and agreed to these Terms of Service. If you do not agree " +
-                        "with these terms, please discontinue use of the application."
+                title = "Information We Collect",
+                preview = "Learn about the information Braillify may collect while you use the app.",
+                body = "Braillify may collect information needed to provide and improve its features, " +
+                        "such as app preferences, calibration settings, and usage-related information. " +
+                        "We only collect information that is relevant to the app's functionality."
             ),
-            TermsItem(
+            PolicyItem(
                 index = "2.",
-                title = "Use of the App",
-                preview = "Learn about the appropriate use of Braillify and its features.",
-                body = "Braillify is intended to provide accessible Braille-related learning and " +
-                        "input features. Users are expected to use the application responsibly and " +
-                        "only for its intended purposes. Do not attempt to misuse, damage, or " +
-                        "interfere with the application's functionality."
+                title = "How We Use Your Information",
+                preview = "See how your information helps us provide and improve Braillify.",
+                body = "Information collected by Braillify may be used to provide app features, " +
+                        "personalize your experience, maintain functionality, and improve the " +
+                        "application's performance. We do not use your information for purposes " +
+                        "unrelated to the app without appropriate notice."
             ),
-            TermsItem(
+            PolicyItem(
                 index = "3.",
-                title = "Intellectual Property",
-                preview = "Information about Braillify's content, design, and intellectual property.",
-                body = "The Braillify name, design, interface, content, and other original materials " +
-                        "are the property of the Braillify development team unless otherwise stated. " +
-                        "These materials may not be copied, modified, or distributed without " +
-                        "appropriate permission."
+                title = "Data Security",
+                preview = "Learn how Braillify helps protect your information.",
+                body = "Braillify takes reasonable measures to protect collected information from " +
+                        "unauthorized access, misuse, or disclosure. We aim to keep your information " +
+                        "secure and only retain data for as long as necessary for the app's intended purposes."
             )
         )
 
-        var selectedTerm by remember { mutableStateOf<TermsItem?>(null) }
+        var selectedPolicy by remember { mutableStateOf<PolicyItem?>(null) }
 
-        terms.forEach { item ->
-            TermsRow(
+        policies.forEach { item ->
+            PolicyRow(
                 index = item.index,
                 title = item.title,
                 preview = item.preview,
-                onClick = { selectedTerm = item }
+                onClick = { selectedPolicy = item }
             )
             Spacer(Modifier.height(12.dp))
         }
 
-        selectedTerm?.let { item ->
+        selectedPolicy?.let { item ->
             AlertDialog(
-                onDismissRequest = { selectedTerm = null },
+                onDismissRequest = { selectedPolicy = null },
                 title = {
                     Text(
                         text = "${item.index} ${item.title}",
@@ -193,7 +194,7 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
                     Text(text = item.body, color = TextGray, lineHeight = 20.sp)
                 },
                 confirmButton = {
-                    TextButton(onClick = { selectedTerm = null }) {
+                    TextButton(onClick = { selectedPolicy = null }) {
                         Text(text = "Close", color = Purple, fontWeight = FontWeight.Bold)
                     }
                 },
@@ -205,7 +206,7 @@ fun AboutTermsOfServiceScreen(onBack: () -> Unit = {}) {
 }
 
 @Composable
-private fun TermsRow(
+private fun PolicyRow(
     index: String,
     title: String,
     preview: String,
@@ -247,6 +248,6 @@ private fun TermsRow(
 
 @Preview(showBackground = true)
 @Composable
-fun AboutTermsOfServicePreview() {
-    AboutTermsOfServiceScreen()
+fun AboutPrivacyPolicyPreview() {
+    AboutPrivacyPolicyScreen()
 }

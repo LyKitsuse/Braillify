@@ -54,7 +54,7 @@ private val Background = Color(0xFFF2F0F5)
 private val RowBackground = Color(0xFFEDEBF2)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
-    
+
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit = {},
@@ -153,6 +153,10 @@ private fun SettingsMain(
     var showExitDialog by remember { mutableStateOf(false) }
     var showInputModeDialog by remember { mutableStateOf(false) }
 
+    // Load saved language
+    var currentLanguage by remember { mutableStateOf(SettingsPrefs.getLanguage(context)) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -229,14 +233,22 @@ private fun SettingsMain(
         Spacer(Modifier.height(8.dp))
 
         SettingsRow(
-            title = "Safety & SOS",
-            subtitle = "Emergency contact and SOS gesture",
+            title = "Safety Feature",
+            subtitle = "Emergency contact and safety gesture",
             onClick = onSOSClick
         )
 
         Spacer(Modifier.height(24.dp))
         SectionTitle("App Settings")
         Spacer(Modifier.height(8.dp))
+
+        // Language
+        SettingsRow(
+            title = "Language",
+            subtitle = currentLanguage,
+            onClick = { showLanguageDialog = true }
+        )
+        Spacer(Modifier.height(10.dp))
 
         // Haptic Feedback
         Card(
@@ -281,7 +293,7 @@ private fun SettingsMain(
 
         SettingsRow(
             title = "Exit Braillify",
-            trailingIconRes = R.drawable.st_exit_24px,
+            trailingIconRes = R.drawable.settings_4ap_4_exit_24px,
             onClick = { showExitDialog = true }
         )
     }
@@ -355,6 +367,49 @@ private fun SettingsMain(
             },
             confirmButton = {
                 TextButton(onClick = { showInputModeDialog = false }) {
+                    Text(text = "Cancel", color = TextGray)
+                }
+            },
+            containerColor = Color.White,
+            shape = RoundedCornerShape(18.dp)
+        )
+    }
+
+    // Language Dialog
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = {
+                Text(
+                    text = "Select Language",
+                    color = TextDark,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column {
+                    RadioOptionRow(
+                        label = "English",
+                        selected = currentLanguage == "English",
+                        onClick = {
+                            currentLanguage = "English"
+                            SettingsPrefs.setLanguage(context, "English") // Save to prefs
+                            showLanguageDialog = false
+                        }
+                    )
+                    RadioOptionRow(
+                        label = "Tagalog",
+                        selected = currentLanguage == "Tagalog",
+                        onClick = {
+                            currentLanguage = "Tagalog"
+                            SettingsPrefs.setLanguage(context, "Tagalog") // Save to prefs
+                            showLanguageDialog = false
+                        }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
                     Text(text = "Cancel", color = TextGray)
                 }
             },

@@ -34,7 +34,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.R
@@ -153,7 +152,7 @@ internal fun BrailleEntryDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                        painter = painterResource(id = R.drawable.global_info_icon_24px),
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)

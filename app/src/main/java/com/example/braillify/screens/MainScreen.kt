@@ -50,7 +50,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.semantics.Role
@@ -217,7 +216,7 @@ class MainScreen {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.braillify_logo),
+                        painter = painterResource(R.drawable.global_braillify_logo),
                         contentDescription = null,
                         modifier = Modifier
                             .size(64.dp)
@@ -272,14 +271,14 @@ class MainScreen {
                     modifier = Modifier.weight(1f),
                     title = "Practice Braille",
                     subtitle = "Practice Braille Code",
-                    iconRes = R.drawable.ms_practice_braille_24px,
+                    iconRes = R.drawable.mainscreen_practicebraille_mi_24px,
                     onClick = onPracticeClick
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
                     title = "Notes",
                     subtitle = "Saved Notes: $notesCount",
-                    iconRes = R.drawable.ms_notes_24px,
+                    iconRes = R.drawable.mainscreen_notes_mi_24px,
                     onClick = onNotesClick
                 )
             }
@@ -294,7 +293,7 @@ class MainScreen {
                     modifier = Modifier.weight(1f),
                     title = "Recalibrate",
                     subtitle = "Adjust Tap Points",
-                    iconRes = R.drawable.ms_recalibrate_24px,
+                    iconRes = R.drawable.mainscreen_recalibrate_24px,
                     onClick = {
                         Log.d("DEBUG", "Recalibrate tapped")
 
@@ -307,7 +306,7 @@ class MainScreen {
                     modifier = Modifier.weight(1f),
                     title = "Profile",
                     subtitle = "Go to Saved Profiles",
-                    iconRes = R.drawable.ms_profile_24px,
+                    iconRes = R.drawable.mainscreen_profile_mi_24px,
                     onClick = onProfileClick
                 )
             }

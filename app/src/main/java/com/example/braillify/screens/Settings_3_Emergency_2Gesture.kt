@@ -100,13 +100,6 @@ fun SOSGestureScreen(
             )
 
             Spacer(Modifier.weight(1f))
-
-            Icon(
-                painter = painterResource(id = R.drawable.top_right_gesture_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -123,7 +116,7 @@ fun SOSGestureScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.gesture_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_3safetygesture_mi_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(40.dp)

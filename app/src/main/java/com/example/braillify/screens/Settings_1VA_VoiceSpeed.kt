@@ -1,12 +1,10 @@
 package com.example.braillify.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Icon
-import androidx.compose.ui.res.painterResource
-import com.example.braillify.R
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -30,11 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.braillify.R
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
@@ -57,6 +58,8 @@ fun VoiceSpeedScreen(
     )
     var selected by remember { mutableStateOf(initialSpeed) }
 
+    BackHandler(enabled = true) { onBack() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -71,6 +74,7 @@ fun VoiceSpeedScreen(
                 .padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Back Button
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -79,27 +83,41 @@ fun VoiceSpeedScreen(
             ) {
                 Text(text = "‹", color = TextDark, fontSize = 28.sp)
             }
+
             Spacer(Modifier.weight(1f))
-            Text(
-                text = "Voice Speed",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            // Centered Icon + Text
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.settings_1va_1vs_icon_si_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = "Voice Speed",
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.vs_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+
+            // Empty space to balance the back button so the middle stays centered
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(16.dp))
 
         // Hero card
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = RowBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -116,8 +134,17 @@ fun VoiceSpeedScreen(
                         .background(PurpleLight, RoundedCornerShape(28.dp)),
                     contentAlignment = Alignment.Center
                 ) {
+                    // Dynamic Icon based on selection
+                    val mainIcon = when (selected) {
+                        "Slow"      -> R.drawable.settings_1va_2vs_1slow_mi_24px
+                        "Normal"    -> R.drawable.settings_1va_2vs_2normal_mi_24px
+                        "Fast"      -> R.drawable.settings_1va_2vs_3fast_mi_24px
+                        "Very Fast" -> R.drawable.settings_1va_2vs_4veryfast_mi_24px
+                        else        -> R.drawable.settings_1va_2vs_2normal_mi_24px
+                    }
+
                     Icon(
-                        painter = painterResource(id = R.drawable.vs_speed_24px),
+                        painter = painterResource(id = mainIcon),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(32.dp)
