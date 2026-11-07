@@ -54,14 +54,18 @@ fun SOSGestureScreen(
 ) {
     val context = LocalContext.current
 
-    val option0Title = "Tap 6 Dots 5 times, and Then Swipe Up then Swipe Down"
-    val option0Subtitle = "Tap 6 Dots 5 times then Swipe Up and Down"
+    // We keep the saved English value so it doesn't break the SOS detection logic,
+    // but we display the translated version in the UI.
+    val option0TitleRaw = "Tap 6 Dots 5 times, and Then Swipe Up then Swipe Down"
+    val option1TitleRaw = "Triple Tap, Swipe, and Then Triple Tap"
 
-    val option1Title = "Triple Tap, Swipe, and Then Triple Tap"
-    val option1Subtitle = "Tap 3 times, swipe, then tap 3 times"
+    val option0TitleDisplay = AppStrings.get(context, "sg_opt0_title")
+    val option0Subtitle = AppStrings.get(context, "sg_opt0_sub")
+    val option1TitleDisplay = AppStrings.get(context, "sg_opt1_title")
+    val option1Subtitle = AppStrings.get(context, "sg_opt1_sub")
 
     val currentSaved = remember { SettingsPrefs.getSOSGesture(context) }
-    val initialSelection = if (currentSaved == option1Title) 1 else 0
+    val initialSelection = if (currentSaved == option1TitleRaw) 1 else 0
 
     var selectedOption by remember { mutableIntStateOf(initialSelection) }
 
@@ -93,20 +97,13 @@ fun SOSGestureScreen(
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = "SOS Gesture",
+                text = AppStrings.get(context, "sg_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(Modifier.weight(1f))
-
-            Icon(
-                painter = painterResource(id = R.drawable.top_right_gesture_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -123,7 +120,7 @@ fun SOSGestureScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.gesture_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_3safetygesture_mi_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(40.dp)
@@ -135,7 +132,7 @@ fun SOSGestureScreen(
 
         // Title & Subtitle
         Text(
-            text = "Choose your SOS gesture",
+            text = AppStrings.get(context, "sg_hero_title"),
             color = TextDark,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -144,7 +141,7 @@ fun SOSGestureScreen(
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Trigger SOS while typing using\nthe gesture you select.",
+            text = AppStrings.get(context, "sg_hero_desc"),
             color = TextGray,
             fontSize = 14.sp,
             modifier = Modifier.fillMaxWidth(),
@@ -156,7 +153,7 @@ fun SOSGestureScreen(
 
         // Options
         GestureOption(
-            title = option0Title,
+            title = option0TitleDisplay,
             subtitle = option0Subtitle,
             isSelected = selectedOption == 0,
             onClick = { selectedOption = 0 }
@@ -165,7 +162,7 @@ fun SOSGestureScreen(
         Spacer(Modifier.height(12.dp))
 
         GestureOption(
-            title = option1Title,
+            title = option1TitleDisplay,
             subtitle = option1Subtitle,
             isSelected = selectedOption == 1,
             onClick = { selectedOption = 1 }
@@ -173,10 +170,10 @@ fun SOSGestureScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Save Button (Moved here, right below the options)
+        // Save Button
         Button(
             onClick = {
-                val selectedTitle = if (selectedOption == 1) option1Title else option0Title
+                val selectedTitle = if (selectedOption == 1) option1TitleRaw else option0TitleRaw
                 onSave(selectedTitle)
             },
             modifier = Modifier
@@ -185,7 +182,7 @@ fun SOSGestureScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Purple)
         ) {
-            Text("Save", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(AppStrings.get(context, "sg_save"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
 
         Spacer(Modifier.height(16.dp))
@@ -215,7 +212,6 @@ private fun GestureOption(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Radio Button
             Box(
                 modifier = Modifier
                     .size(24.dp)

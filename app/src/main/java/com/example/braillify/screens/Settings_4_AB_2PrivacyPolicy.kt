@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +53,8 @@ private data class PolicyItem(
 
 @Composable
 fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,7 +62,6 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,19 +77,21 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
                 Text(text = "‹", color = TextDark, fontSize = 28.sp)
             }
             Spacer(Modifier.weight(1f))
-            Text(
-                text = "Privacy Policy",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = AppStrings.get(context, "privacy_policy_title"),
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.app_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -113,7 +116,7 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.app_privacy_policy_hero_24px),
+                        painter = painterResource(id = R.drawable.settings_4ap_ab_pp_2icon_mi_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(28.dp)
@@ -121,14 +124,14 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Your Privacy Matters",
+                    text = AppStrings.get(context, "privacy_hero_title"),
                     color = TextDark,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Braillify is a mobile application designed to help visually impaired users read and write using Braille, with the support of voice assistance and machine learning technology.",
+                    text = AppStrings.get(context, "privacy_hero_desc"),
                     color = TextGray,
                     fontSize = 12.sp,
                     lineHeight = 16.sp,
@@ -139,31 +142,25 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
 
         Spacer(Modifier.height(16.dp))
 
+        // Build the list dynamically using the string keys
         val policies = listOf(
             PolicyItem(
                 index = "1.",
-                title = "Information We Collect",
-                preview = "Learn about the information Braillify may collect while you use the app.",
-                body = "Braillify may collect information needed to provide and improve its features, " +
-                        "such as app preferences, calibration settings, and usage-related information. " +
-                        "We only collect information that is relevant to the app's functionality."
+                title = AppStrings.get(context, "privacy_1_title"),
+                preview = AppStrings.get(context, "privacy_1_preview"),
+                body = AppStrings.get(context, "privacy_1_body")
             ),
             PolicyItem(
                 index = "2.",
-                title = "How We Use Your Information",
-                preview = "See how your information helps us provide and improve Braillify.",
-                body = "Information collected by Braillify may be used to provide app features, " +
-                        "personalize your experience, maintain functionality, and improve the " +
-                        "application's performance. We do not use your information for purposes " +
-                        "unrelated to the app without appropriate notice."
+                title = AppStrings.get(context, "privacy_2_title"),
+                preview = AppStrings.get(context, "privacy_2_preview"),
+                body = AppStrings.get(context, "privacy_2_body")
             ),
             PolicyItem(
                 index = "3.",
-                title = "Data Security",
-                preview = "Learn how Braillify helps protect your information.",
-                body = "Braillify takes reasonable measures to protect collected information from " +
-                        "unauthorized access, misuse, or disclosure. We aim to keep your information " +
-                        "secure and only retain data for as long as necessary for the app's intended purposes."
+                title = AppStrings.get(context, "privacy_3_title"),
+                preview = AppStrings.get(context, "privacy_3_preview"),
+                body = AppStrings.get(context, "privacy_3_body")
             )
         )
 
@@ -194,7 +191,7 @@ fun AboutPrivacyPolicyScreen(onBack: () -> Unit = {}) {
                 },
                 confirmButton = {
                     TextButton(onClick = { selectedPolicy = null }) {
-                        Text(text = "Close", color = Purple, fontWeight = FontWeight.Bold)
+                        Text(text = AppStrings.get(context, "close"), color = Purple, fontWeight = FontWeight.Bold)
                     }
                 },
                 containerColor = Color.White,

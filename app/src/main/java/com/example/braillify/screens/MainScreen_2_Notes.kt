@@ -167,7 +167,7 @@ fun NotesScreen(
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = "Notes",
+                text = AppStrings.get(context, "notes_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -186,7 +186,7 @@ fun NotesScreen(
             ) {
                 Text("+", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(6.dp))
-                Text("Add Note", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(AppStrings.get(context, "notes_add"), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -198,7 +198,7 @@ fun NotesScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No notes yet. Tap \"Add Note\" to get started.",
+                    text = AppStrings.get(context, "notes_empty"),
                     color = TextGray,
                     fontSize = 14.sp
                 )
@@ -228,7 +228,7 @@ fun NotesScreen(
                 Text(text = note.title, color = TextDark, fontWeight = FontWeight.Bold)
             },
             text = {
-                Text(text = "What would you like to do with this note?", color = TextGray)
+                Text(text = AppStrings.get(context, "notes_dialog_desc"), color = TextGray)
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -236,7 +236,7 @@ fun NotesScreen(
                     showEditor = true
                     dialogNoteIndex = null
                 }) {
-                    Text("Edit", color = Purple, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.get(context, "notes_edit"), color = Purple, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -246,7 +246,7 @@ fun NotesScreen(
                     onNotesChanged()
                     dialogNoteIndex = null
                 }) {
-                    Text("Delete", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                    Text(AppStrings.get(context, "notes_delete"), color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
                 }
             },
             containerColor = Color.White,
@@ -290,6 +290,7 @@ private fun NoteEditorScreen(
     onBack: () -> Unit,
     onSave: (NoteItem) -> Unit
 ) {
+    val context = LocalContext.current
     var title by remember { mutableStateOf(initial?.title ?: "") }
     var body by remember { mutableStateOf(initial?.body ?: "") }
 
@@ -318,7 +319,7 @@ private fun NoteEditorScreen(
             }
             Spacer(Modifier.weight(1f))
             Text(
-                text = if (initial == null) "New Note" else "Edit Note",
+                text = if (initial == null) AppStrings.get(context, "note_new_title") else AppStrings.get(context, "note_edit_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -332,7 +333,7 @@ private fun NoteEditorScreen(
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
-            label = { Text("Title", color = TextGray) },
+            label = { Text(AppStrings.get(context, "note_title_label"), color = TextGray) },
             singleLine = true,
             textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -351,7 +352,7 @@ private fun NoteEditorScreen(
         OutlinedTextField(
             value = body,
             onValueChange = { body = it },
-            label = { Text("Write your note...", color = TextGray) },
+            label = { Text(AppStrings.get(context, "note_body_label"), color = TextGray) },
             textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
@@ -377,9 +378,9 @@ private fun NoteEditorScreen(
                         if (body.length > 60) "..." else ""
                 onSave(
                     NoteItem(
-                        title = title.ifBlank { "Untitled" },
+                        title = title.ifBlank { AppStrings.get(context, "note_untitled") },
                         date = now,
-                        preview = preview.ifBlank { "No preview" },
+                        preview = preview.ifBlank { AppStrings.get(context, "note_no_preview") },
                         body = body
                     )
                 )
@@ -390,7 +391,7 @@ private fun NoteEditorScreen(
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Purple)
         ) {
-            Text("Save", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(AppStrings.get(context, "note_save"), color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

@@ -112,21 +112,26 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = "Safety & SOS",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.settings_3emergency_0_icon_si_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = AppStrings.get(context, "sos_title"),
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
-            Icon(
-                painter = painterResource(id = R.drawable.health_and_safety_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -149,7 +154,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.sos_24px),
+                        painter = painterResource(id = R.drawable.settings_3emergency_1_icon_mi_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(56.dp)
@@ -157,14 +162,14 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "Stay safe, always",
+                    text = AppStrings.get(context, "sos_hero_title"),
                     color = TextDark,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = "Quickly call for help by using a special gesture while typing in Braillify.",
+                    text = AppStrings.get(context, "sos_hero_desc"),
                     color = TextGray,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
@@ -177,18 +182,18 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
 
         // Emergency Contact
         SOSRow(
-            iconRes = R.drawable.call_24px,
-            title = "Emergency Contact",
+            iconRes = R.drawable.settings_3emergency_2_0emergencycontact_mi_24px,
+            title = AppStrings.get(context, "sos_contact_row"),
             subtitle = savedNumber,
             onClick = { showEmergencyContact = true }
         )
 
         Spacer(Modifier.height(10.dp))
 
-        // SOS Gesture row
+        // Safety Gesture row
         SOSRow(
-            iconRes = R.drawable.gesture_24px,
-            title = "SOS Gesture",
+            iconRes = R.drawable.settings_3emergency_3safetygesture_mi_24px,
+            title = AppStrings.get(context, "sos_gesture_row"),
             subtitle = savedGesture,
             onClick = { showSOSGesture = true }
         )
@@ -215,7 +220,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.enable_icon_24px),
+                        painter = painterResource(id = R.drawable.settings_3emergency_4enablesafetygesture_mi_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(20.dp)
@@ -224,14 +229,14 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 Spacer(Modifier.size(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Enable SOS",
+                        text = AppStrings.get(context, "sos_enable"),
                         color = TextDark,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = "Allow SOS to work while typing",
+                        text = AppStrings.get(context, "sos_enable_sub"),
                         color = TextGray,
                         fontSize = 12.sp
                     )
@@ -269,7 +274,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                        painter = painterResource(id = R.drawable.global_info_icon_24px),
                         contentDescription = null,
                         tint = Purple,
                         modifier = Modifier.size(22.dp)
@@ -277,7 +282,7 @@ fun SOSSubScreen(onBack: () -> Unit = {}) {
                 }
                 Spacer(Modifier.size(12.dp))
                 Text(
-                    text = "When enabled, you can trigger SOS with the selected gesture while using the Braille keyboard.",
+                    text = AppStrings.get(context, "sos_info"),
                     color = TextDark,
                     fontSize = 13.sp,
                     lineHeight = 18.sp

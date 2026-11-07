@@ -1,6 +1,5 @@
 package com.example.braillify.screens
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -79,6 +79,8 @@ private fun AboutMain(
     onPrivacy: () -> Unit,
     onTerms: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,21 +106,26 @@ private fun AboutMain(
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = "About Braillify",
-                color = TextDark,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.global_info_icon_24px),
+                    contentDescription = null,
+                    tint = Purple,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.size(8.dp))
+                Text(
+                    text = AppStrings.get(context, "about_title"),
+                    color = TextDark,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
-            Icon(
-                painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
+            // Empty space to balance the back button
+            Spacer(Modifier.size(32.dp))
         }
 
         Spacer(Modifier.height(24.dp))
@@ -129,20 +136,20 @@ private fun AboutMain(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
-                painter = painterResource(id = R.drawable.braillify_logo),
+                painter = painterResource(id = R.drawable.global_braillify_logo),
                 contentDescription = "Braillify Logo",
                 modifier = Modifier.size(72.dp)
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = "Braillify",
+                text = "Braillify", // Keep the app name as is
                 color = TextDark,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = "Version 1.0.0",
+                text = AppStrings.get(context, "about_version"),
                 color = TextGray,
                 fontSize = 13.sp
             )
@@ -152,9 +159,7 @@ private fun AboutMain(
 
         // Description
         Text(
-            text = "Braillify is a mobile application designed to help visually impaired users read " +
-                    "and write using Braille, with the support of voice assistance and machine learning " +
-                    "technology.",
+            text = AppStrings.get(context, "about_desc"),
             color = TextGray,
             fontSize = 13.sp,
             textAlign = TextAlign.Center,
@@ -168,23 +173,23 @@ private fun AboutMain(
 
         // Info rows
         InfoRow(
-            title = "Developer",
-            subtitle = "Meet the developers of Braillify",
-            iconRes = R.drawable.ab_developer_icon_24px,
+            title = AppStrings.get(context, "about_dev_row"),
+            subtitle = AppStrings.get(context, "about_dev_row_sub"),
+            iconRes = R.drawable.settings_4ap_1_developer_mi_24px,
             onClick = onDevelopers
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
-            title = "Privacy Policy",
-            subtitle = "Learn how we protect your data.",
-            iconRes = R.drawable.ab_privacy_policy_icon_24px,
+            title = AppStrings.get(context, "about_privacy_row"),
+            subtitle = AppStrings.get(context, "about_privacy_row_sub"),
+            iconRes = R.drawable.settings_4ap_2_privacypolicy_mi_24px,
             onClick = onPrivacy
         )
         Spacer(Modifier.height(12.dp))
         InfoRow(
-            title = "Terms of Service",
-            subtitle = "Read our terms and conditions.",
-            iconRes = R.drawable.ab_terms_of_service_24px,
+            title = AppStrings.get(context, "about_terms_row"),
+            subtitle = AppStrings.get(context, "about_terms_row_sub"),
+            iconRes = R.drawable.settings_4ap_3_termsofservice_mi_24px,
             onClick = onTerms
         )
     }

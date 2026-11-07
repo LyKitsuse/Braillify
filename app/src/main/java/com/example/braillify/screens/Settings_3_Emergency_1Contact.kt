@@ -50,19 +50,15 @@ private val ACardWhite = Color(0xFFFFFFFF)
 private val TextDark = Color(0xFF1A1A1A)
 private val TextGray = Color(0xFF8A8A8A)
 
-// Formats the raw 10 digits to look nice
-private fun formatPhoneNumber(raw: String): String {
-    if (raw.isEmpty()) return "+63 XXX XXX XXXX"
+private fun formatPhoneNumber(raw: String, defaultText: String): String {
+    if (raw.isEmpty()) return defaultText
     if (raw.length <= 3) return "+63 $raw"
     if (raw.length <= 6) return "+63 ${raw.substring(0, 3)} ${raw.substring(3)}"
     return "+63 ${raw.substring(0, 3)} ${raw.substring(3, 6)} ${raw.substring(6)}"
 }
 
-// Strips ALL non-digits, drops any leading 63, and keeps exactly 10 digits
-//Not sure if 10 digits are the exact numbers for all sim; at least for me it is 10 digits
 private fun cleanRawNumber(input: String): String {
     val digits = input.filter { it.isDigit() }
-    // If the number starts with 63 and is 12 digits long
     val withoutCode = if (digits.startsWith("63") && digits.length == 12) digits.substring(2) else digits
     return withoutCode.take(10)
 }
@@ -71,7 +67,6 @@ private fun cleanRawNumber(input: String): String {
 fun EmergencyContactScreen(onBack: () -> Unit = {}) {
     val context = LocalContext.current
 
-    // Load and immediately clean the saved string so it only holds 10 digits max
     val savedRaw = remember {
         cleanRawNumber(SettingsPrefs.getEmergencyNumber(context))
     }
@@ -106,18 +101,13 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
             }
             Spacer(Modifier.weight(1f))
             Text(
-                text = "Emergency Contact",
+                text = AppStrings.get(context, "ec_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
             Spacer(Modifier.weight(1f))
-            Icon(
-                painter = painterResource(id = R.drawable.emergency_top_right_24px),
-                contentDescription = null,
-                tint = Purple,
-                modifier = Modifier.size(24.dp)
-            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -134,7 +124,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.contact_emergency_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_1emergencycontact_mi_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(36.dp)
@@ -146,7 +136,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
 
         // Title & Subtitle
         Text(
-            text = "Emergency Contact",
+            text = AppStrings.get(context, "ec_hero_title"),
             color = TextDark,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
@@ -155,7 +145,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "This number will be called when SOS is activated.",
+            text = AppStrings.get(context, "ec_hero_desc"),
             color = TextGray,
             fontSize = 14.sp,
             modifier = Modifier.fillMaxWidth(),
@@ -183,7 +173,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.phone_number_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_2i_phonenumber_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(24.dp)
@@ -191,20 +181,20 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 Spacer(Modifier.size(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Phone Number",
+                        text = AppStrings.get(context, "ec_phone_label"),
                         color = TextGray,
                         fontSize = 12.sp
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = formatPhoneNumber(rawPhoneNumber),
+                        text = formatPhoneNumber(rawPhoneNumber, AppStrings.get(context, "ec_default")),
                         color = if (rawPhoneNumber.isEmpty()) TextGray else TextDark,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
                 Icon(
-                    painter = painterResource(id = R.drawable.edit_pencil_24px),
+                    painter = painterResource(id = R.drawable.settings_3emergency_2_2ipencil_24px),
                     contentDescription = "Edit Phone Number",
                     tint = Purple,
                     modifier = Modifier
@@ -222,7 +212,6 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
         // Save Button
         Button(
             onClick = {
-                // Save the raw 10 digits directly
                 SettingsPrefs.setEmergencyNumber(context, rawPhoneNumber)
                 onBack()
             },
@@ -233,7 +222,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
             colors = ButtonDefaults.buttonColors(containerColor = Purple)
         ) {
             Text(
-                text = "Save",
+                text = AppStrings.get(context, "ec_save"),
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold
@@ -256,14 +245,14 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                    painter = painterResource(id = R.drawable.global_info_icon_24px),
                     contentDescription = null,
                     tint = Purple,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.size(12.dp))
                 Text(
-                    text = "Make sure this is a trusted and reachable contact.",
+                    text = AppStrings.get(context, "ec_info"),
                     color = TextDark,
                     fontSize = 13.sp,
                     lineHeight = 18.sp
@@ -278,7 +267,7 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
             onDismissRequest = { showEditDialog = false },
             title = {
                 Text(
-                    text = "Edit Phone Number",
+                    text = AppStrings.get(context, "ec_edit_title"),
                     color = TextDark,
                     fontWeight = FontWeight.Bold
                 )
@@ -292,8 +281,8 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                             tempPhoneNumber = digitsOnly
                         }
                     },
-                    placeholder = { Text("9123456789", color = TextGray) },
-                    label = { Text("Phone Number (10 digits)") },
+                    placeholder = { Text(AppStrings.get(context, "ec_edit_placeholder"), color = TextGray) },
+                    label = { Text(AppStrings.get(context, "ec_edit_label")) },
                     prefix = { Text("+63 ") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -305,12 +294,12 @@ fun EmergencyContactScreen(onBack: () -> Unit = {}) {
                     rawPhoneNumber = tempPhoneNumber
                     showEditDialog = false
                 }) {
-                    Text("Confirm", color = Purple, fontWeight = FontWeight.Bold)
+                    Text(AppStrings.get(context, "ec_confirm"), color = Purple, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Cancel", color = TextGray)
+                    Text(AppStrings.get(context, "ec_cancel"), color = TextGray)
                 }
             },
             containerColor = Color.White,

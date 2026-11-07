@@ -50,7 +50,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.Calibrate
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.semantics.Role
@@ -88,7 +87,6 @@ class MainScreen {
 
                 // If a tab other than Home is selected, go back to Home
                 selectedTab != NavTab.HOME -> selectedTab = NavTab.HOME
-
             }
         }
 
@@ -99,7 +97,7 @@ class MainScreen {
                     .weight(1f)
                     .windowInsetsPadding(WindowInsets.statusBars)
             ) {
-                // Hidden TextBox for pulling up the keyboard from navbar or anywhere
+                // Hidden TextBox for pulling up the keyboard
                 Box(
                     modifier = Modifier
                         .size(1.dp)
@@ -126,7 +124,7 @@ class MainScreen {
                         onBack = { showProfile = false }
                     )
 
-                    //NAVBAR CONTENT
+                    // NAVBAR CONTENT
                     selectedTab == NavTab.HOME -> HomeContent(
                         notesCount = notesCount,
                         onNotesClick = { showNotes = true },
@@ -146,7 +144,7 @@ class MainScreen {
                 }
             }
 
-            // Hide NavBar on sub-screens (Notes, Practice, or Settings sub-screen)
+            // Hide NavBar on sub-screens
             if (!showNotes && !showPractice && !settingsSubOpen && !showProfile) {
                 NavBar(
                     selectedTab = selectedTab,
@@ -163,6 +161,7 @@ class MainScreen {
         onNotesClick: () -> Unit = {},
         onProfileClick: () -> Unit = {}
     ) {
+        val context = LocalContext.current
         var text by remember { mutableStateOf("") }
         val focusRequester = remember { FocusRequester() }
         val keyboardController = LocalSoftwareKeyboardController.current
@@ -174,12 +173,13 @@ class MainScreen {
                 .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "Braillify",
+                text = AppStrings.get(context, "main_app_name"),
                 color = Purple,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
+
             // Hidden TextBox for Calibration
             Box(
                 modifier = Modifier
@@ -198,7 +198,7 @@ class MainScreen {
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics(mergeDescendants = true) {
-                        contentDescription = "Tap to Start. Open the Braille Keyboard and start typing."
+                        contentDescription = AppStrings.get(context, "main_tap_start_a11y")
                         role = Role.Button
                     }
                     .clickable {
@@ -207,7 +207,7 @@ class MainScreen {
                         keyboardController?.show()
                     },
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
@@ -217,7 +217,7 @@ class MainScreen {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.braillify_logo),
+                        painter = painterResource(R.drawable.global_braillify_logo),
                         contentDescription = null,
                         modifier = Modifier
                             .size(64.dp)
@@ -226,7 +226,7 @@ class MainScreen {
                     )
                     Spacer(Modifier.height(16.dp))
                     Text(
-                        text = "Tap to Start",
+                        text = AppStrings.get(context, "main_tap_start"),
                         color = TextDark,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold
@@ -234,7 +234,7 @@ class MainScreen {
                     Spacer(Modifier.height(6.dp))
                     Text(
                         textAlign = TextAlign.Center,
-                        text = "Open the Braille Keyboard and start typing.",
+                        text = AppStrings.get(context, "main_tap_start_desc"),
                         color = TextGray,
                         fontSize = 13.sp
                     )
@@ -253,7 +253,7 @@ class MainScreen {
                         colors = ButtonDefaults.buttonColors(containerColor = Purple)
                     ) {
                         Text(
-                            text = "Start",
+                            text = AppStrings.get(context, "main_start_btn"),
                             color = Color.White,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
@@ -270,16 +270,16 @@ class MainScreen {
             ) {
                 FeatureCard(
                     modifier = Modifier.weight(1f),
-                    title = "Practice Braille",
-                    subtitle = "Practice Braille Code",
-                    iconRes = R.drawable.ms_practice_braille_24px,
+                    title = AppStrings.get(context, "main_practice_title"),
+                    subtitle = AppStrings.get(context, "main_practice_desc"),
+                    iconRes = R.drawable.mainscreen_practicebraille_mi_24px,
                     onClick = onPracticeClick
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
-                    title = "Notes",
-                    subtitle = "Saved Notes: $notesCount",
-                    iconRes = R.drawable.ms_notes_24px,
+                    title = AppStrings.get(context, "main_notes_title"),
+                    subtitle = String.format(AppStrings.get(context, "main_notes_desc"), notesCount),
+                    iconRes = R.drawable.mainscreen_notes_mi_24px,
                     onClick = onNotesClick
                 )
             }
@@ -292,12 +292,11 @@ class MainScreen {
             ) {
                 FeatureCard(
                     modifier = Modifier.weight(1f),
-                    title = "Recalibrate",
-                    subtitle = "Adjust Tap Points",
-                    iconRes = R.drawable.ms_recalibrate_24px,
+                    title = AppStrings.get(context, "main_recalibrate_title"),
+                    subtitle = AppStrings.get(context, "main_recalibrate_desc"),
+                    iconRes = R.drawable.mainscreen_recalibrate_24px,
                     onClick = {
                         Log.d("DEBUG", "Recalibrate tapped")
-
                         cal.calibrateNew()
                         focusRequester.requestFocus()
                         keyboardController?.show()
@@ -305,9 +304,9 @@ class MainScreen {
                 )
                 FeatureCard(
                     modifier = Modifier.weight(1f),
-                    title = "Profile",
-                    subtitle = "Go to Saved Profiles",
-                    iconRes = R.drawable.ms_profile_24px,
+                    title = AppStrings.get(context, "main_profile_title"),
+                    subtitle = AppStrings.get(context, "main_profile_desc"),
+                    iconRes = R.drawable.mainscreen_profile_mi_24px,
                     onClick = onProfileClick
                 )
             }
@@ -324,9 +323,9 @@ class MainScreen {
     ) {
         Card(
             onClick = onClick,
-            modifier = modifier.heightIn(min = 140.dp),
+            modifier = modifier.heightIn(min = 160.dp),
             shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = CardWhite),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
@@ -335,7 +334,7 @@ class MainScreen {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                //Call Icon
+                // Call Icon
                 Box(
                     modifier = Modifier
                         .size(36.dp)

@@ -30,11 +30,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.braillify.R
@@ -44,12 +44,14 @@ private fun labelFor(char: String): String = when {
     char.length == 1 && char[0].isDigit() -> "Digit"
     else -> "Symbol"
 }
+
 @Composable
 internal fun BrailleEntryDetailScreen(
     entry: BrailleEntry,
     category: String = "Letter",
     onBack: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     BackHandler(enabled = true) { onBack() }
 
     Column(
@@ -78,7 +80,7 @@ internal fun BrailleEntryDetailScreen(
             }
             Spacer(Modifier.size(8.dp))
             Text(
-                text = "Braille Dictionary",
+                text = AppStrings.get(context, "dict_title"),
                 color = DictTextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -100,7 +102,6 @@ internal fun BrailleEntryDetailScreen(
                     .padding(vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                //String
                 Text(
                     text = entry.char,
                     color = DictTextDark,
@@ -153,17 +154,26 @@ internal fun BrailleEntryDetailScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ab_top_right_icon_24px),
+                        painter = painterResource(id = R.drawable.global_info_icon_24px),
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
                 }
                 Spacer(Modifier.size(12.dp))
+
+                // Using string format for the info text
+                val dotString = if (entry.dots.size > 1) AppStrings.get(context, "dict_dots") else AppStrings.get(context, "dict_dot")
+                val dotsJoined = entry.dots.sorted().joinToString(", ")
+                val infoText = String.format(
+                    AppStrings.get(context, "dict_info_text"),
+                    category.lowercase(),
+                    entry.char,
+                    if (entry.dots.size > 1) "s" else "",
+                    dotsJoined
+                )
                 Text(
-                    text = "The letter ${entry.char} is represented by " +
-                            "dot${if (entry.dots.size > 1) "s" else ""} " +
-                            entry.dots.sorted().joinToString(", ") + ".",
+                    text = infoText,
                     color = DictTextDark,
                     fontSize = 13.sp,
                     lineHeight = 18.sp
@@ -178,7 +188,7 @@ internal fun BrailleEntryDetailScreen(
             modifier = Modifier.clearAndSetSemantics { }
         ) {
             Text(
-                text = "Braille Pattern",
+                text = AppStrings.get(context, "dict_pattern_title"),
                 color = DictTextDark,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
@@ -213,12 +223,12 @@ internal fun BrailleEntryDetailScreen(
 
                 // Legend — dot number, colored dot, description
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    DotLegendRow(1, "top left",     entry.dots)
-                    DotLegendRow(2, "middle left",  entry.dots)
-                    DotLegendRow(3, "bottom left",  entry.dots)
-                    DotLegendRow(4, "top right",    entry.dots)
-                    DotLegendRow(5, "middle right", entry.dots)
-                    DotLegendRow(6, "bottom right", entry.dots)
+                    DotLegendRow(1, AppStrings.get(context, "dict_dot_1"), entry.dots)
+                    DotLegendRow(2, AppStrings.get(context, "dict_dot_2"), entry.dots)
+                    DotLegendRow(3, AppStrings.get(context, "dict_dot_3"), entry.dots)
+                    DotLegendRow(4, AppStrings.get(context, "dict_dot_4"), entry.dots)
+                    DotLegendRow(5, AppStrings.get(context, "dict_dot_5"), entry.dots)
+                    DotLegendRow(6, AppStrings.get(context, "dict_dot_6"), entry.dots)
                 }
             }
         }

@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import com.example.braillify.R
 
 private val Purple = Color(0xFF5B3FE4)
@@ -64,7 +63,6 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
     val focusRequester = remember { FocusRequester() }
     val context = LocalContext.current
 
-    // Hide keyboard
     // Hide keyboard
     BackHandler {
         hideKeyboard(context)
@@ -118,7 +116,7 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
             Spacer(Modifier.weight(1f))
 
             Text(
-                text = "Practice Braille",
+                text = AppStrings.get(context, "practice_title"),
                 color = TextDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -132,9 +130,9 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
         Spacer(Modifier.height(24.dp))
 
         PracticeRow(
-            iconRes = R.drawable.pb_braille_keyboard_24px,
-            title = "Braille Keyboard",
-            subtitle = "Type using braille and see the result.",
+            iconRes = R.drawable.practicebraille_option1_braillekeyboard_mi_24px,
+            title = AppStrings.get(context, "practice_keyboard_title"),
+            subtitle = AppStrings.get(context, "practice_keyboard_desc"),
             onClick = {
                 Log.d("DEBUG", "Braille Keyboard tapped")
                 focusRequester.requestFocus()
@@ -148,9 +146,9 @@ fun PracticeBrailleScreen(onBack: () -> Unit = {}) {
         Spacer(Modifier.height(16.dp))
 
         PracticeRow(
-            iconRes = R.drawable.pb_braille_dictionary_24px,
-            title = "Braille Dictionary",
-            subtitle = "Browse and learn braille characters, numbers and punctuations.",
+            iconRes = R.drawable.practicebraille_option2_brailledictionary_mi_24px,
+            title = AppStrings.get(context, "practice_dictionary_title"),
+            subtitle = AppStrings.get(context, "practice_dictionary_desc"),
             onClick = { showDictionary = true }
         )
     }
@@ -168,7 +166,7 @@ private fun PracticeRow(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
