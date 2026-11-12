@@ -6,11 +6,15 @@ object OnboardingStrings {
     // English Translation
     val english = mapOf(
         // Language Selection
-        "onb_lang_hello" to "Hello",
-        "onb_lang_kumusta" to "Kumusta",
-        "onb_lang_next" to "Next",
-        "onb_lang_english" to "English",
-        "onb_lang_tagalog" to "Tagalog",
+        "onb_lang_welcome" to "Welcome to",
+        "onb_lang_subtitle" to "Let's make communication\nmore accessible.",
+        "onb_lang_step" to "Step 1 of 4 • Language Selection",
+        "onb_lang_choose_title" to "Choose your language",
+        "onb_lang_choose_desc" to "Select your preferred language for using Braillify.",
+        "onb_lang_footer" to "You can change your language later in Settings.",
+        "onb_lang_english_native" to "English",
+        "onb_lang_tagalog_native" to "Filipino",
+        "onb_next" to "Next",
 
         // Welcome
         "onb_welcome_title" to "Welcome to Braillify",
@@ -69,11 +73,15 @@ object OnboardingStrings {
     //Tagalog Translation
     val tagalog = mapOf(
         // Language Selection
-        "onb_lang_hello" to "Hello",
-        "onb_lang_kumusta" to "Kumusta",
-        "onb_lang_next" to "Susunod",
-        "onb_lang_english" to "English",
-        "onb_lang_tagalog" to "Tagalog",
+        "onb_lang_welcome" to "Maligayang Pagdating sa",
+        "onb_lang_subtitle" to "Gawin nating mas madaling ma-access\nang komunikasyon.",
+        "onb_lang_step" to "Hakbang 1 ng 4 • Pagpili ng Wika",
+        "onb_lang_choose_title" to "Piliin ang iyong wika",
+        "onb_lang_choose_desc" to "Piliin ang iyong gustong wika para sa paggamit ng Braillify.",
+        "onb_lang_footer" to "Maaari mong baguhin ang wika mamaya sa Settings.",
+        "onb_lang_english_native" to "Ingles",
+        "onb_lang_tagalog_native" to "Filipino",
+        "onb_next" to "Susunod",
 
         // Welcome
         "onb_welcome_title" to "Maligayang Pagdating sa Braillify",
