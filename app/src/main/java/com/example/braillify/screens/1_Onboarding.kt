@@ -335,32 +335,6 @@ private fun LanguageSelectionScreen(onNext: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        Text(
-            text = AppStrings.get(context, "onb_lang_welcome"),
-            color = TextDark,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Text(
-            text = "Braillify",
-            color = AccentPurple,
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        Text(
-            text = AppStrings.get(context, "onb_lang_subtitle"),
-            color = TextGray,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp
-        )
-
         Spacer(Modifier.height(48.dp))
 
         HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
