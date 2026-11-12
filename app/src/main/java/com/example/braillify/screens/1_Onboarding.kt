@@ -4,15 +4,9 @@ import android.content.Intent
 import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,21 +21,27 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -58,11 +58,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -77,16 +77,17 @@ import kotlinx.coroutines.delay
 
 private val Purple = Color(0xFF5B3FE4)
 private val PurpleLight = Color(0xFFE8E3FB)
-private val Background = Color(0xFFF2F0F5)
+private val Background = Color(0xFFF9F9FB)
 private val ACardWhite = Color(0xFFFFFFFF)
 private val TextDark = Color(0xFF1A1A1A)
-private val TextGray = Color(0xFF8A8A8A)
+private val TextGray = Color(0xFF6B6B6B)
+private val AccentPurple = Color(0xFF6B4EE6)
 
 class Onboarding {
     @Preview(showBackground = true)
     @Composable
     fun OnboardingProcess(onFinished: () -> Unit = {}) {
-        // -1 = Language Selection, 0 = Welcome, 1..4 = Steps
+        // -1 = Language Selection, 0 = Welcome, 1..4 = Setup Steps
         var currentStep by remember { mutableIntStateOf(-1) }
         var step1Done by remember { mutableStateOf(false) }
         var step2Done by remember { mutableStateOf(false) }
@@ -140,7 +141,7 @@ class Onboarding {
                 .background(Background)
                 .windowInsetsPadding(WindowInsets.statusBars)
         ) {
-            // Hidden TextBox
+            // Invisible text field used to bring up the keyboard during calibration
             Box(
                 modifier = Modifier
                     .size(1.dp)
@@ -177,7 +178,6 @@ class Onboarding {
                         .verticalScroll(scrollState)
                         .padding(horizontal = 20.dp, vertical = 16.dp)
                 ) {
-                    // Header
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -200,7 +200,7 @@ class Onboarding {
                         )
                         Spacer(Modifier.size(8.dp))
                         Text(
-                            text = AppStrings.get(context, "main_app_name"), // "Braillify"
+                            text = AppStrings.get(context, "main_app_name"),
                             color = Purple,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
@@ -211,7 +211,6 @@ class Onboarding {
 
                     Spacer(Modifier.height(16.dp))
 
-                    // Progress Bar
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -229,10 +228,7 @@ class Onboarding {
 
                     Spacer(Modifier.height(24.dp))
 
-                    // Step Content
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Box(modifier = Modifier.fillMaxWidth()) {
                         when (currentStep) {
                             1 -> Step1Talkback(
                                 isClickedYet = step1Done,
@@ -310,123 +306,107 @@ class Onboarding {
     }
 }
 
-// New Phase - Language Selection
 @Composable
 private fun LanguageSelectionScreen(onNext: () -> Unit) {
     val context = LocalContext.current
     var selectedLanguage by remember { mutableStateOf(SettingsPrefs.getLanguage(context)) }
-    var showHello by remember { mutableStateOf(true) }
 
-    // Back handler: If they press back here, we exit the app
-    // (or you can change this to finish the activity).
+    // Prevent going back to a previous screen
     val activity = context as? android.app.Activity
     BackHandler(enabled = true) {
         activity?.finish()
     }
 
-    // Loop the text switching
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(2500)
-            showHello = !showHello
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 30.dp, vertical = 24.dp),
+            .statusBarsPadding()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(60.dp))
+        Spacer(Modifier.height(40.dp))
 
         Image(
             painter = painterResource(id = R.drawable.global_braillify_logo),
             contentDescription = "Braillify Logo",
-            modifier = Modifier.size(80.dp)
+            modifier = Modifier.size(100.dp)
         )
 
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(24.dp))
 
-        // Animated "Hello / Kumusta"
-        Box(
-            modifier = Modifier
-                .height(80.dp)
-                .fillMaxWidth()
-                .semantics(mergeDescendants = true) {
-                    contentDescription = "${AppStrings.get(context, "onb_lang_hello")}, ${AppStrings.get(context, "onb_lang_kumusta")}"
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            AnimatedContent(
-                targetState = showHello,
-                transitionSpec = {
-                    (slideInVertically(
-                        animationSpec = tween(durationMillis = 600),
-                        initialOffsetY = { it } // Starts from the bottom
-                    ) + fadeIn(animationSpec = tween(600)))
-                        .togetherWith(
-                            slideOutVertically(
-                                animationSpec = tween(durationMillis = 600),
-                                targetOffsetY = { -it } // Leaves towards the top
-                            ) + fadeOut(animationSpec = tween(600)))
-                },
-                label = "Greeting"
-            ) { isHello ->
-                Text(
-                    text = if (isHello) AppStrings.get(context, "onb_lang_hello") else AppStrings.get(context, "onb_lang_kumusta"),
-                    color = TextDark,
-                    fontSize = 48.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
+        Text(
+            text = AppStrings.get(context, "onb_lang_welcome"),
+            color = TextDark,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Text(
+            text = "Braillify",
+            color = AccentPurple,
+            fontSize = 36.sp,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            text = AppStrings.get(context, "onb_lang_subtitle"),
+            color = TextGray,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+            lineHeight = 24.sp
+        )
 
         Spacer(Modifier.height(48.dp))
 
-        // Divider
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color(0xFFD0D0D0))
-        )
+        HorizontalDivider(color = Color(0xFFE0E0E0), thickness = 1.dp)
 
         Spacer(Modifier.height(32.dp))
 
-        // New Header
         Text(
-            text = "Set Your Language",
+            text = AppStrings.get(context, "onb_lang_choose_title"),
             color = TextDark,
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = AppStrings.get(context, "onb_lang_choose_desc"),
+            color = TextGray,
+            fontSize = 14.sp,
             textAlign = TextAlign.Center
         )
 
         Spacer(Modifier.height(24.dp))
 
-        // Language Options
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .selectableGroup(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            LanguageOption(
-                label = AppStrings.get(context, "onb_lang_english"),
-                selected = selectedLanguage == "English",
-                onSelect = { selectedLanguage = "English" }
+            LanguageCard(
+                languageName = "English",
+                nativeName = AppStrings.get(context, "onb_lang_english_native"),
+                isSelected = selectedLanguage == "English",
+                onSelect = { selectedLanguage = "English" },
+                flagDrawable = R.drawable.onb_english_option
             )
-            LanguageOption(
-                label = AppStrings.get(context, "onb_lang_tagalog"),
-                selected = selectedLanguage == "Tagalog",
-                onSelect = { selectedLanguage = "Tagalog" }
+            LanguageCard(
+                languageName = "Tagalog",
+                nativeName = AppStrings.get(context, "onb_lang_tagalog_native"),
+                isSelected = selectedLanguage == "Tagalog",
+                onSelect = { selectedLanguage = "Tagalog" },
+                flagDrawable = R.drawable.onb_tagalog_option
             )
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(32.dp))
 
         Button(
             onClick = {
@@ -435,11 +415,38 @@ private fun LanguageSelectionScreen(onNext: () -> Unit) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Purple)
+                .height(56.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentPurple)
         ) {
-            Text(AppStrings.get(context, "onb_lang_next"), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(AppStrings.get(context, "onb_next"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.Info,
+                contentDescription = null,
+                tint = TextGray,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = AppStrings.get(context, "onb_lang_footer"),
+                color = TextGray,
+                fontSize = 12.sp
+            )
         }
 
         Spacer(Modifier.height(24.dp))
@@ -447,44 +454,94 @@ private fun LanguageSelectionScreen(onNext: () -> Unit) {
 }
 
 @Composable
-private fun LanguageOption(
-    label: String,
-    selected: Boolean,
-    onSelect: () -> Unit
+private fun LanguageCard(
+    languageName: String,
+    nativeName: String,
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+    flagDrawable: Int
 ) {
-    val backgroundColor = if (selected) PurpleLight else ACardWhite
+    val backgroundColor = if (isSelected) Color(0xFFF2EFFF) else Color.White
+    val borderColor = if (isSelected) AccentPurple else Color(0xFFE0E0E0)
+    val borderWidth = if (isSelected) 2.dp else 1.dp
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(backgroundColor)
+            .border(borderWidth, borderColor, RoundedCornerShape(16.dp))
             .selectable(
-                selected = selected,
+                selected = isSelected,
                 onClick = onSelect
             )
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
     ) {
-        RadioButton(
-            selected = selected,
-            onClick = null, // Handled by the selectable modifier
-            colors = RadioButtonDefaults.colors(
-                selectedColor = Purple,
-                unselectedColor = Color.Gray
+        // Circled Flag
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape) // The circle mask
+                .background(Color(0xFFF2F0F5)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = flagDrawable),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    // Zoom in and shift left to show the stars
+                    .graphicsLayer(
+                        scaleX = 1.4f, // Zooms the flag in by 40%
+                        scaleY = 1.4f,
+                        translationX = -12f // Shifts the image to the left
+                    ),
+                contentScale = ContentScale.Crop // Fills the circle, cutting off the right edge
             )
-        )
-        Spacer(Modifier.size(16.dp))
-        Text(
-            text = label,
-            color = TextDark,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium
-        )
+        }
+
+        Spacer(Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = languageName,
+                color = TextDark,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = nativeName,
+                color = TextGray,
+                fontSize = 14.sp
+            )
+        }
+
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .background(AccentPurple, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = "Selected",
+                    tint = Color.White,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .border(2.dp, Color(0xFFBDBDBD), CircleShape)
+            )
+        }
     }
 }
 
-// Phase 0 - Welcome
 @Composable
 private fun WelcomeScreen(onStart: () -> Unit) {
     val context = LocalContext.current
@@ -542,7 +599,6 @@ private fun WelcomeScreen(onStart: () -> Unit) {
         Spacer(Modifier.height(24.dp))
     }
 
-    // Learn More Dialog
     if (showLearnMore) {
         AlertDialog(
             onDismissRequest = { showLearnMore = false },
@@ -581,7 +637,6 @@ private fun WelcomeScreen(onStart: () -> Unit) {
     }
 }
 
-// Phase 1 - Talkback
 @Composable
 private fun Step1Talkback(
     isClickedYet: Boolean,
@@ -610,7 +665,6 @@ private fun Step1Talkback(
     )
 }
 
-// Phase 2 - Keyboard
 @Composable
 private fun Step2Keyboard(
     isClickedYet: Boolean,
@@ -639,7 +693,6 @@ private fun Step2Keyboard(
     )
 }
 
-// Phase 3 - Calibration
 @Composable
 private fun Step3Calibration(
     stepFocusRequester: FocusRequester? = null,
@@ -662,7 +715,6 @@ private fun Step3Calibration(
     )
 }
 
-// Phase 4 - Emergency Contact
 @Composable
 private fun Step4Emergency(
     stepFocusRequester: FocusRequester? = null,
@@ -685,7 +737,6 @@ private fun Step4Emergency(
     )
 }
 
-// Shared Layout for Setup Steps
 @Composable
 private fun SetupStepLayout(
     stepNumber: Int,
